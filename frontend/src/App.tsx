@@ -1,48 +1,37 @@
-import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
+import { useApi } from "./hooks/useApi"; // 👈 ton hook générique
 
 function App() {
-  const [message, setMessage] = useState<string>("Loading...");
-
-  useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    fetch(`${apiUrl}/api/example`)
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => {
-        console.error("❌ Error fetching API:", err);
-        setMessage("Error connecting to API");
-      });
-  }, []);
-
-  // useEffect(() => {
-  //   fetch("https://scan-my-boxes-api.vercel.app/api/example")
-  //     .then((res) => res.json())
-  //     .then((data) => console.log(data))
-  //     .catch((err) => {
-  //       console.error("❌ Error fetching API:", err);
-  //       setMessage("Error connecting to API");
-  //     });
-  // }, []);
+  // 🔥 On appelle le hook générique pour récupérer les données de ton API
+  const { data, loading, error } = useApi<{ message: string }>("/api/example");
 
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
+        <a href="https://vite.dev" target="_blank" rel="noreferrer">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
-        <a href="https://react.dev" target="_blank">
+        <a href="https://react.dev" target="_blank" rel="noreferrer">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+
+      <h1>Vite + React + API</h1>
 
       <div className="card">
-        <p>🛰️ API response:</p>
-        <code>{message}</code>
+        {loading && <p>⏳ Chargement des données...</p>}
+        {error && <p style={{ color: "red" }}>❌ {error}</p>}
+        {data && (
+          <>
+            <p>🛰️ Réponse de l’API :</p>
+            <code>{data.message}</code>
+          </>
+        )}
       </div>
+
+      <p className="read-the-docs">Click on the logos to learn more</p>
     </>
   );
 }
