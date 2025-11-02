@@ -1,0 +1,61 @@
+# ==========================
+# Node / NPM
+# ==========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+*.log
+
+# ==========================
+# Build outputs
+# ==========================
+dist/
+build/
+.cache/
+.tmp/
+out/
+
+# ==========================
+# TypeScript
+# ==========================
+*.tsbuildinfo
+
+# ==========================
+# Env files (NEVER COMMIT SECRETS)
+# ==========================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ==========================
+# Vercel / Deployment
+# ==========================
+.vercel/
+.vercel_build_output/
+
+# ==========================
+# OS / Editor junk
+# ==========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ==========================
+# Monorepo workspaces
+# ==========================
+frontend/node_modules/
+api/node_modules/
+frontend/dist/
+api/dist/
+
+# ==========================
+# Misc
+# ==========================
+*.log
