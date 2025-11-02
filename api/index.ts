@@ -15,6 +15,10 @@ const allowedOrigins = [
 
 // Middleware CORS
 app.use((req, res, next) => {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://scan-my-boxes.vercel.app",
+  ];
   const origin = req.headers.origin;
 
   if (origin && allowedOrigins.includes(origin)) {
@@ -27,9 +31,8 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
   if (req.method === "OPTIONS") {
-    return res.status(204).end(); // 204 = no content, conforme aux preflight requests
+    return res.status(204).end();
   }
-
   next();
 });
 
