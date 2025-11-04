@@ -11,22 +11,18 @@ const BottomNav = () => {
   const handleFabClick = () => alert("🚀 Action rapide !");
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-auto py-4 bg-gray-800 shadow-md md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around py-4 bg-gray-800 shadow-md md:hidden">
 
       {navItems.map((item) => (
         <NavLink key={item.to} to={item.to}>
           {({ isActive }) => (
             <motion.div
               layout
-              className="flex items-center px-3 py-2"
-              animate={{
-                backgroundColor: isActive ? "rgba(156,163,175,1)" : "rgba(0,0,0,0)",
-                borderRadius: "9999px",
-              }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+              className={`flex items-center transition-colors ${
+                isActive ? "text-gray-400" : "text-yellow-700"
+              }`}
             >
-
-              {/* Icône (reste fixe à gauche) */}
+              {/* Icône */}
               <motion.div
                 layout
                 animate={{ scale: isActive ? 1.1 : 1 }}
@@ -35,37 +31,37 @@ const BottomNav = () => {
                 {item.icon}
               </motion.div>
 
-              {/* Conteneur du texte avec largeur animée */}
-           <motion.div
-  layout
-  animate={{
-    width: isActive ? "auto" : 0,
-    marginLeft: 2,
-  }}
-  transition={{
-    delay: isActive ? 0.15 : 0.15, // 👈 Delay appliqué UNIQUEMENT quand on active
-    type: "spring",
-    stiffness: 260,
-    damping: 22,
-  }}
-  className="overflow-hidden"
->
-  <span className="flex overflow-hidden items-center text-[11px] font-light whitespace-nowrap">
-    {item.label}
-  </span>
-</motion.div>
+              {/* Label révélé de gauche -> droite */}
+              <motion.div
+                layout
+                animate={{
+                  width: isActive ? "auto" : 0,
+                  marginLeft: isActive ? 6 : -6,
+                }}
+                transition={{
+                  delay: isActive ? 0.1 : 0,
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 22,
+                }}
+                className="overflow-hidden"
+              >
+                <span className="text-[11px] font-light whitespace-nowrap">
+                  {item.label}
+                </span>
+              </motion.div>
             </motion.div>
           )}
         </NavLink>
       ))}
 
-      {/* FAB Centre */}
+      {/* FAB centre */}
       <motion.button
         whileTap={{ scale: 0.9 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
+        animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         onClick={handleFabClick}
-        className="fixed bottom-7 !p-3 text-white !bg-gray-900 !rounded-full"
+        className="fixed bottom-7 p-3 text-white bg-gray-900 rounded-full"
       >
         <ScanQrCode size={32} />
       </motion.button>
