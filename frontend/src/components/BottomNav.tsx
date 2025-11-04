@@ -21,7 +21,7 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-auto py-2 bg-gray-800 shadow-md md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-auto py-4 bg-gray-800 shadow-md md:hidden">
       {/* Icônes de gauche */}
       {navItems.slice(0, 2).map((item) => (
         <NavLink
@@ -42,7 +42,7 @@ const BottomNav = () => {
             >
               {item.icon}
               {isActive && (
-                <span className="text-[10px] mt-1">{item.label}</span>
+                <span className="text-[10px] ml-2">{item.label}</span>
               )}
             </motion.div>
           )}
