@@ -5,14 +5,17 @@ import { Home, User, ScanQrCode } from "lucide-react";
 const BottomNav = () => {
   const navItems = [
     { to: "/", icon: <Home size={22} strokeWidth={0.75} />, label: "Accueil" },
-    { to: "/profile", icon: <User size={22} strokeWidth={0.75} />, label: "Profil" },
+    {
+      to: "/profile",
+      icon: <User size={22} strokeWidth={0.75} />,
+      label: "Profil",
+    },
   ];
 
   const handleFabClick = () => alert("🚀 Action rapide !");
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around py-4 bg-gray-800 shadow-md md:hidden">
-
       {navItems.map((item) => (
         <NavLink key={item.to} to={item.to}>
           {({ isActive }) => (
@@ -26,9 +29,10 @@ const BottomNav = () => {
               <motion.div
                 layout
                 transition={{
-                    delay: isActive ? 0.1 : 0,
-                    type: "spring",
-                    stiffness: 260, damping: 20
+                  delay: isActive ? 0.1 : 0,
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20,
                 }}
               >
                 {item.icon}
@@ -39,12 +43,12 @@ const BottomNav = () => {
                 layout
                 animate={{
                   width: isActive ? "auto" : 0,
-                  marginLeft: isActive ? 2 : 0,
+                  marginLeft: isActive ? 1 : 0,
                 }}
                 transition={{
                   delay: isActive ? 0.1 : 0,
                   type: "spring",
-                  stiffness: 260,
+                  stiffness: 100,
                   damping: 22,
                 }}
                 className="overflow-hidden"
@@ -64,7 +68,7 @@ const BottomNav = () => {
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         onClick={handleFabClick}
-        className="fixed bottom-7 p-3 text-white bg-gray-900 rounded-full"
+        className="fixed p-3 text-white bg-gray-900 rounded-full bottom-7"
       >
         <ScanQrCode size={32} />
       </motion.button>
