@@ -18,7 +18,6 @@ const BottomNav = () => {
           {({ isActive }) => (
             <motion.div
               layout
-              initial={false} // 👈 important pour garder l'état précédent
               className={`flex items-center transition-colors ${
                 !isActive ? "text-gray-400" : "text-yellow-400"
               }`}
@@ -35,12 +34,12 @@ const BottomNav = () => {
               {/* Label révélé de gauche -> droite */}
               <motion.div
                 layout
-                initial={false} // 👈 garde l'état précédent pour l'animation
                 animate={{
                   width: isActive ? "auto" : 0,
                   marginLeft: isActive ? 2 : -6,
                 }}
                 transition={{
+                  delay: isActive ? 0.1 : 0,
                   type: "spring",
                   stiffness: 260,
                   damping: 22,
