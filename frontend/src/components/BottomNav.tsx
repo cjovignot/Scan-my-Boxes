@@ -19,7 +19,7 @@ const BottomNav = () => {
             <motion.div
               layout
               className={`flex items-center transition-colors ${
-                isActive ? "text-gray-400" : "text-yellow-700"
+                isActive ? "text-gray-400" : "text-yellow-400"
               }`}
             >
               {/* Icône */}
@@ -36,7 +36,7 @@ const BottomNav = () => {
                 layout
                 animate={{
                   width: isActive ? "auto" : 0,
-                  marginLeft: isActive ? 6 : -6,
+                  marginLeft: isActive ? 4 : -6,
                 }}
                 transition={{
                   delay: isActive ? 0.1 : 0,
