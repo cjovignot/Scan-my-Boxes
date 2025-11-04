@@ -41,7 +41,7 @@ const BottomNav = () => {
               className="flex flex-col items-center"
             >
               {item.icon}
-              {!isActive && (
+              {isActive && (
                 <span className="text-[10px] mt-1">{item.label}</span>
               )}
             </motion.div>
