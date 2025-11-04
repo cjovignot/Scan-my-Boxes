@@ -38,7 +38,7 @@ const BottomNav = () => {
               // whileTap={{ scale: 0.85 }}
               animate={{ scale: isActive ? 1.2 : 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              className="flex flex-col items-center"
+              className="flex items-center"
             >
               {item.icon}
               {isActive && (
