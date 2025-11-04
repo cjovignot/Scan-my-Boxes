@@ -36,7 +36,7 @@ const BottomNav = () => {
                 layout
                 animate={{
                   width: isActive ? "auto" : 0,
-                  marginLeft: isActive ? 0 : -6,
+                  marginLeft: isActive ? 2 : -6,
                 }}
                 transition={{
                   delay: isActive ? 0.1 : 0,
