@@ -1,3 +1,14 @@
+html, body {
+  overscroll-behavior: none;
+  height: 100%;
+  overflow: hidden;
+}
+#root {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* #root {
   max-width: 1280px;
   text-align: center;
