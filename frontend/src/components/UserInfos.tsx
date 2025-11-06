@@ -37,13 +37,15 @@ const UserInfos = () => {
   );
 
   const handleDelete = async (id: string) => {
-    const ok = confirm("⚠️ Es-tu sûr de vouloir supprimer cet utilisateur ?");
-    if (!ok) return;
+  const ok = confirm("⚠️ Es-tu sûr de vouloir supprimer cet utilisateur ?");
+  if (!ok) return;
 
-    await deleteUser(undefined, {
-      url: `/api/user/${id}`, // 👈 override URL propre
-    } as any);
-  };
+  await deleteUser(undefined, {
+    url: `/api/user/${id}`, // ✅ maintenant ça fonctionne
+  });
+
+  refetch(); // 🔄 rafraîchir la liste après suppression
+};
 
   return (
     <div className="w-full max-w-md p-6 bg-gray-900 border border-gray-800 shadow-lg rounded-2xl">
