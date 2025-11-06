@@ -53,7 +53,7 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
   const { mutate, loading, error } = useApiMutation<
     { message: string },
     Partial<typeof formData>
-  >(userId ? `/api/users/${userId}` : "", "PATCH", {
+  >(userId ? `/api/user/${userId}` : "", "PATCH", {
     onSuccess: (data) => {
       setToast(data.message); // afficher le message succès
       if (onSuccess) onSuccess();
