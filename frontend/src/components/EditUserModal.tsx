@@ -1,7 +1,6 @@
 // frontend/components/EditUserModal.tsx
 import { useEffect, useState } from "react";
-import { useApi } from "../hooks/useApi";
-import { useApiMutation } from "../hooks/useApiMutation";
+import axios from "axios";
 
 type EditUserModalProps = {
   userId: string | null;
@@ -10,7 +9,7 @@ type EditUserModalProps = {
   onSuccess?: () => void;
 };
 
-// Simple toast pour afficher un message temporaire
+// Toast simple
 const Toast = ({ message, onClose }: { message: string; onClose: () => void }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
@@ -18,62 +17,56 @@ const Toast = ({ message, onClose }: { message: string; onClose: () => void }) =
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
+    <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50">
       {message}
     </div>
   );
 };
 
 export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserModalProps) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // ✅ Charger automatiquement l’utilisateur
-  const { data: user } = useApi<{
-    _id: string;
-    name: string;
-    email: string;
-  }>(userId ? `/api/users/${userId}` : "", { skip: !userId });
-
+  // ✅ Fetch user à l'ouverture ou quand userId change
   useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name,
-        email: user.email,
-        password: "",
-      });
-    }
-  }, [user]);
+    if (!userId || !isOpen) return;
 
-  // ✅ Mutation mise à jour
-  const { mutate, loading, error } = useApiMutation<
-    { message: string },
-    Partial<typeof formData>
-  >(userId ? `/api/users/${userId}` : "", "PATCH", {
-    onSuccess: (data) => {
-      setToast(data.message); // afficher le message succès
-      if (onSuccess) onSuccess();
-      onClose();
-    },
-    onError: (err: any) => {
-      setToast(err.response?.data?.error || "Erreur réseau");
-    },
-  });
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`/api/users/${userId}`);
+        setFormData({ name: res.data.name, email: res.data.email, password: "" });
+      } catch (err: any) {
+        console.error("Erreur fetch user:", err);
+        setToast(err.response?.data?.error || "Impossible de charger l'utilisateur");
+      }
+    };
 
-  if (!isOpen) return null; // cacher la modal si fermée
+    fetchUser();
+  }, [userId, isOpen]);
+
+  if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return setToast("ID utilisateur manquant");
-    mutate(formData);
+
+    setLoading(true);
+    try {
+      const res = await axios.patch(`/api/users/${userId}`, formData);
+      setToast(res.data.message || "Utilisateur mis à jour !");
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err: any) {
+      console.error("Erreur update user:", err);
+      setToast(err.response?.data?.error || "Erreur réseau");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,8 +110,6 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded"
               />
             </div>
-
-            {error && <p className="text-sm text-red-400">{error}</p>}
 
             <div className="flex justify-end gap-2">
               <button
