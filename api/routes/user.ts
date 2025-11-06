@@ -1,11 +1,14 @@
 import { Router } from "express";
 import { User } from "../models/User";
+import { connectDB } from "../utils/db";
 import bcrypt from "bcryptjs";
 
 const router = Router();
 
 // ✅ GET - tous les utilisateurs
 router.get("/", async (req, res) => {
+  await connectDB();
+
   try {
     const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
@@ -17,6 +20,8 @@ router.get("/", async (req, res) => {
 
 // ✅ GET - un utilisateur par ID
 router.get("/:id", async (req, res) => {
+  await connectDB();
+
   try {
     const user = await User.findById(req.params.id);
 
@@ -31,6 +36,8 @@ router.get("/:id", async (req, res) => {
 
 // ✅ POST - création d'un utilisateur
 router.post("/", async (req, res) => {
+  await connectDB();
+
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password)
@@ -48,6 +55,8 @@ router.post("/", async (req, res) => {
 
 // ✅ PATCH - modification d’un utilisateur
 router.patch("/:id", async (req, res) => {
+  await connectDB();
+
   try {
     const { name, email, password } = req.body;
 
