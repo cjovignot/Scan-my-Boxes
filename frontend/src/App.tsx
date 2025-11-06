@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Examples from "./pages/Examples";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
+import Login from "./pages/Login";
 
 function App() {
   const location = useLocation();
@@ -18,6 +19,7 @@ function App() {
           <Route path="/examples" element={<Examples />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
         </Route>
       </Routes>
     </AnimatePresence>
