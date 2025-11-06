@@ -2,7 +2,7 @@ import PageWrapper from "../components/PageWrapper";
 import { SocialLogin } from "../components/SocialLogin";
 import axios from "../api/axiosClient";
 
-const LoginPage = () => {
+const Login = () => {
   const handleSocialLogin = async ({ provider, token, profile }: any) => {
     try {
       const res = await axios.post("/api/auth/social-login", {
@@ -28,4 +28,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
