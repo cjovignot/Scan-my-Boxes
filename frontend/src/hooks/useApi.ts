@@ -1,60 +1,40 @@
 // frontend/src/hooks/useApi.ts
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axiosClient from "../api/axiosClient";
-import axios from "axios";
-
-interface UseApiOptions {
-  skip?: boolean;
-  params?: Record<string, unknown>;
-}
 
 export function useApi<T = unknown>(
   endpoint: string,
-  { skip = false, params = {} }: UseApiOptions = {}
+  options: { skip?: boolean } = {}
 ) {
+  const { skip = false, ...fetchOptions } = options;
+
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(!skip);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (skip || !endpoint) return; // ✅ on ne fetch pas si skip ou endpoint vide
+  const fetchData = useCallback(async () => {
+    if (skip) return;
+    setLoading(true);
 
-    let isMounted = true;
-
-    const fetchData = async () => {
-      setLoading(true);
+    try {
+      const response = await axiosClient.get<T>(endpoint, fetchOptions);
+      setData(response.data);
       setError(null);
+    } catch (err) {
+      console.error("API Error:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Erreur inconnue lors de la requête";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint, JSON.stringify(fetchOptions), skip]);
 
-      try {
-        const response = await axiosClient.get<T>(endpoint, { params });
-        if (isMounted) setData(response.data);
-
-      } catch (err) {
-        if (!isMounted) return;
-
-        console.error("❌ API GET Error:", err);
-
-        let message = "Erreur inconnue";
-
-        // ✅ Extraire le vrai message du backend si axios
-        if (axios.isAxiosError(err)) {
-          message = err.response?.data?.error || err.message || message;
-        }
-
-        setError(message);
-
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchData();
+  }, [fetchData]);
 
-    return () => {
-      isMounted = false;
-    };
-
-  }, [endpoint, JSON.stringify(params), skip]);
-
-  return { data, loading, error };
+  return { data, loading, error, refetch: fetchData }; // 👈 On expose `refetch`
 }
