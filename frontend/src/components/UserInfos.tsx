@@ -74,7 +74,7 @@ const UserInfos = () => {
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 {/* Bouton Modifier */}
                 <button
                   onClick={() => handleEdit(user._id)}
