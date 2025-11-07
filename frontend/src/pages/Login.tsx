@@ -22,7 +22,7 @@ const Login = () => {
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/profile");
+      navigate("/home");
     } catch (error: any) {
       console.error("❌ Erreur Google Login :", error.response?.data || error);
       alert("Erreur de connexion Google");
