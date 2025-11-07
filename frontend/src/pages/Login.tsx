@@ -1,30 +1,31 @@
-import PageWrapper from "../components/PageWrapper";
+// frontend/src/pages/Login.tsx
 import { SocialLogin } from "../components/SocialLogin";
-import axios from "../api/axiosClient";
+import axiosClient from "../api/axiosClient";
 
 const Login = () => {
-  const handleSocialLogin = async ({ provider, token, profile }: any) => {
+  const handleLogin = async ({ token }: { token: string }) => {
     try {
-      const res = await axios.post("/api/auth/social-login", {
-        provider,
-        token,
-        profile,
-      });
-      console.log("✅ connecté:", res.data.user);
-    } catch (err: any) {
-      console.error("Erreur login social:", err.response?.data || err.message);
+      // ✅ Envoi du token Google à ton backend
+      const res = await axiosClient.post("/api/user/google-login", { token });
+
+      const data = res.data;
+
+      // ✅ Sauvegarde de l'utilisateur dans le localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // ⏩ Optionnel : rediriger vers un tableau de bord
+      // window.location.href = "/dashboard";
+    } catch (error: any) {
+      console.error("❌ Erreur Google Login :", error.response?.data || error);
+      alert("Erreur de connexion Google");
     }
   };
 
   return (
-    <PageWrapper>
-      <div className="flex justify-center items-center min-h-screen bg-gray-900 text-white">
-        <div className="p-8 bg-gray-800 rounded-xl shadow-lg space-y-4 w-80 text-center">
-          <h1 className="text-xl font-semibold">Connexion</h1>
-          <SocialLogin onLogin={handleSocialLogin} />
-        </div>
-      </div>
-    </PageWrapper>
+    <div className="flex flex-col items-center justify-center h-screen gap-6">
+      <h1 className="text-2xl font-bold">Connexion</h1>
+      <SocialLogin onLogin={handleLogin} />
+    </div>
   );
 };
 

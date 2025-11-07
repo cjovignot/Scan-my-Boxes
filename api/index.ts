@@ -4,7 +4,11 @@ import serverless from "serverless-http";
 import exampleRouter from "./routes/example";
 import userRouter from "./routes/user";
 import { connectDB } from "./utils/db";
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+
+// Charge le .env depuis le dossier `api`
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 
@@ -27,7 +31,10 @@ app.use((req, res, next) => {
     res.setHeader("Vary", "Origin");
   }
 
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT, PATCH,DELETE,OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT, PATCH,DELETE,OPTIONS"
+  );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
