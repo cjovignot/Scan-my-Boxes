@@ -7,29 +7,25 @@ const Login = () => {
   const navigate = useNavigate();
 
   // ✅ Mutation pour Google Login
-  const { mutate: loginWithGoogle } = useApiMutation<
-    { user: any },              // réponse attendue
-    { token: string }           // payload envoyé
-  >("/api/auth/google-login", "POST", {
+  const { mutate: loginWithGoogle } = useApiMutation<{ user: any }, { token: string }>(
+  "/api/auth/google-login",
+  "POST",
+  {
     onSuccess: (data) => {
-      if (!data?.user) {
-        alert("Utilisateur non trouvé dans la réponse du serveur.");
-        return;
-      }
-      // Sauvegarde utilisateur
+      if (!data?.user) return alert("Utilisateur non trouvé");
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/home"); // navigation SPA
+      navigate("/home");
     },
-    onError: (error) => {
-      console.error("❌ Erreur Google Login:", error);
+    onError: (err) => {
+      console.error("Erreur Google login:", err);
       alert("Erreur de connexion Google");
     },
-  });
+  }
+);
 
-  // Appel depuis le composant SocialLogin
-  const handleGoogleLogin = ({ token }: { token: string }) => {
-    loginWithGoogle({ token });
-  };
+const handleGoogleLogin = ({ token }: { token: string }) => {
+  loginWithGoogle({ token });
+};
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-6 text-white bg-gray-950">
