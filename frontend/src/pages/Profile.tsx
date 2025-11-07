@@ -1,24 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import PageWrapper from "../components/PageWrapper";
 import axiosClient from "../api/axiosClient";
 import { motion } from "framer-motion";
 import { LogOut, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/useAuth";
 
 const Profile = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // 🔍 Charger l'utilisateur depuis localStorage
+  // 🔍 Si pas connecté → redirige vers /login
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
-    else navigate("/login");
-  }, [navigate]);
+    if (!user) navigate("/login");
+  }, [user, navigate]);
 
   // 🔐 Déconnexion
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logout(); // ✅ Nettoie le state et localStorage
     navigate("/login");
   };
 
@@ -32,7 +31,7 @@ const Profile = () => {
 
     try {
       await axiosClient.delete(`/api/user/${user._id}`);
-      localStorage.removeItem("user");
+      logout(); // ✅ Déconnecte automatiquement
       alert("Compte supprimé avec succès.");
       navigate("/register");
     } catch (error: any) {

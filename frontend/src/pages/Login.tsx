@@ -2,29 +2,28 @@ import UserForm from "../components/UserForm";
 import { SocialLogin } from "../components/SocialLogin";
 import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "../hooks/useApiMutation";
-import { useAuth } from "../contexts/AuthContext"; // ✅ import AuthContext
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const { setUser } = useAuth(); // ✅ récupération du setter utilisateur
 
   // ✅ Mutation pour Google Login
-  const { mutate: loginWithGoogle } = useApiMutation<{ user: any }, { token: string }>(
-    "/api/auth/google-login",
-    "POST",
-    {
-      onSuccess: (data) => {
-        if (!data?.user) return alert("Utilisateur non trouvé");
-        // 🔹 Mise à jour du context + localStorage automatiquement via AuthContext
-        setUser(data.user);
-        navigate("/profile"); // navigation après login
-      },
-      onError: (err) => {
-        console.error("Erreur Google login:", err);
-        alert("Erreur de connexion Google");
-      },
-    }
-  );
+  const { mutate: loginWithGoogle } = useApiMutation<
+    { user: any },
+    { token: string }
+  >("/api/auth/google-login", "POST", {
+    onSuccess: (data) => {
+      if (!data?.user) return alert("Utilisateur non trouvé");
+      // 🔹 Mise à jour du context + localStorage automatiquement via AuthContext
+      setUser(data.user);
+      navigate("/profile"); // navigation après login
+    },
+    onError: (err) => {
+      console.error("Erreur Google login:", err);
+      alert("Erreur de connexion Google");
+    },
+  });
 
   const handleGoogleLogin = ({ token }: { token: string }) => {
     loginWithGoogle({ token });

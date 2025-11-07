@@ -8,7 +8,7 @@ import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
-import { AuthProvider } from "./contexts/AuthContext"; // ✅ Import AuthProvider
+import { AuthProvider } from "./contexts/AuthProvider";
 
 function App() {
   const location = useLocation();

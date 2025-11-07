@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, User, ScanQrCode, KeyRound } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext"; // ✅ Import AuthContext
+import { useAuth } from "../contexts/AuthContext";
 
 const BottomNav = () => {
   const { user } = useAuth(); // ✅ Récupère l'utilisateur connecté
