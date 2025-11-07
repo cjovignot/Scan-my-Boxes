@@ -8,7 +8,7 @@ const Login = () => {
 
   const handleLogin = async ({ provider, token, profile }: any) => {
     try {
-      const res = await axiosClient.post("/user/google-login", {
+      const res = await axiosClient.post("/auth/google-login", {
         provider,
         token,
         profile,
