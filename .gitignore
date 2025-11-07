@@ -59,3 +59,5 @@ api/dist/
 # Misc
 # ==========================
 *.log
+.env
+api/.env
