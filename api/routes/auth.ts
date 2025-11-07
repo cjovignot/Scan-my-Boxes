@@ -1,45 +1,52 @@
-import { Router } from "express";
-import { User } from "../models/User";
-import { connectDB } from "../utils/db";
-
-const router = Router();
-import { OAuth2Client } from "google-auth-library";
-
-const client = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
-
-router.post("/social-login", async (req, res) => {
+// ✅ POST /api/user/google-login
+router.post("/google-login", async (req, res) => {
   await connectDB();
+  const { token } = req.body;
+
   try {
-    const { provider, token } = req.body;
+    if (!googleClientId) {
+      console.error("❌ VITE_GOOGLE_CLIENT_ID manquant côté backend");
+      return res.status(500).json({ error: "Configuration Google manquante." });
+    }
 
-    if (provider !== "google" || !token)
-      return res.status(400).json({ error: "Données invalides." });
-
-    const ticket = await client.verifyIdToken({
+    // ✅ Vérifie le token Google côté serveur
+    const ticket = await googleClient.verifyIdToken({
       idToken: token,
-      audience: process.env.VITE_GOOGLE_CLIENT_ID,
+      audience: googleClientId,
     });
 
     const payload = ticket.getPayload();
-    if (!payload?.email)
-      return res.status(400).json({ error: "Email Google manquant." });
+
+    if (!payload || !payload.email) {
+      return res.status(400).json({ error: "Email Google non trouvé." });
+    }
 
     let user = await User.findOne({ email: payload.email });
+
     if (!user) {
-      user = await User.create({
+      // ✅ Si l'utilisateur n'existe pas, on le crée sans mot de passe
+      user = new User({
         name: payload.name,
         email: payload.email,
         picture: payload.picture,
-        password: "-", // inutile pour Google login
         provider: "google",
+        password: "-", // placeholder pour satisfaire le schéma
       });
+      await user.save();
+    } else {
+      // ✅ Sinon, on met à jour les infos Google
+      user.name = payload.name || user.name;
+      user.picture = payload.picture || user.picture;
+      user.provider = "google";
+      await user.save();
     }
 
-    res.json({ message: "✅ Login Google réussi", user });
-  } catch (err) {
-    console.error("❌ Erreur social-login:", err);
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (err: any) {
+    console.error("❌ Erreur vérification Google:", err);
     res.status(401).json({ error: "Token Google invalide." });
   }
 });
-
-export default router;
