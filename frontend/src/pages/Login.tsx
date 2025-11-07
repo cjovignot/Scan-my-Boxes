@@ -22,7 +22,7 @@ const Login = () => {
     },
     onError: (error) => {
       console.error("❌ Erreur Google Login:", error);
-      alert("Erreur de connexion via Google");
+      alert("Erreur de connexion via Google:", error);
     },
   });
 
