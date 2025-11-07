@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, User, ScanQrCode, KeyRound } from "lucide-react";
+import { Home, User, ScanQrCode, KeyRound, Shield } from "lucide-react"; // 🛡️ Icone admin
 import { useAuth } from "../contexts/AuthContext";
 
 const BottomNav = () => {
@@ -12,28 +12,54 @@ const BottomNav = () => {
     { to: "/", icon: <Home size={22} strokeWidth={0.75} />, label: "Accueil" },
   ];
 
-  // 🔁 Si user connecté → afficher profil, sinon login
-  const navItemsRight = user
-    ? [
-        {
-          to: "/profile",
-          icon: (
-            <div className="relative">
-              <User size={22} strokeWidth={0.75} />
-              {/* 🟢 Pastille verte */}
-              <span className="absolute top-0 right-0 block w-2 h-2 bg-green-500 rounded-full ring-2 ring-gray-900"></span>
-            </div>
-          ),
-          label: "Profil",
-        },
-      ]
-    : [
-        {
-          to: "/login",
-          icon: <KeyRound size={22} strokeWidth={0.75} />,
-          label: "Connexion",
-        },
-      ];
+  // 🔹 Nav items dynamiques selon le rôle du user
+  let navItemsRight = [];
+
+  if (!user) {
+    // 🧑‍💻 Non connecté
+    navItemsRight = [
+      {
+        to: "/login",
+        icon: <KeyRound size={22} strokeWidth={0.75} />,
+        label: "Connexion",
+      },
+    ];
+  } else if (user.role === "admin") {
+    // 👑 Admin
+    navItemsRight = [
+      {
+        to: "/admin",
+        icon: <Shield size={22} strokeWidth={0.75} />,
+        label: "Admin",
+      },
+      {
+        to: "/profile",
+        icon: (
+          <div className="relative">
+            <User size={22} strokeWidth={0.75} />
+            {/* 🟢 Pastille verte */}
+            <span className="absolute top-0 right-0 block w-2 h-2 bg-green-500 rounded-full ring-2 ring-gray-900"></span>
+          </div>
+        ),
+        label: "Profil",
+      },
+    ];
+  } else {
+    // 👤 Utilisateur standard
+    navItemsRight = [
+      {
+        to: "/profile",
+        icon: (
+          <div className="relative">
+            <User size={22} strokeWidth={0.75} />
+            {/* 🟢 Pastille verte */}
+            <span className="absolute top-0 right-0 block w-2 h-2 bg-green-500 rounded-full ring-2 ring-gray-900"></span>
+          </div>
+        ),
+        label: "Profil",
+      },
+    ];
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 shadow-lg md:hidden">
