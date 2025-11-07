@@ -14,11 +14,11 @@ const Login = () => {
     onSuccess: (data) => {
       if (!data?.user) return alert("Utilisateur non trouvé");
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/home");
+      navigate("/profile");
     },
     onError: (err) => {
       console.error("Erreur Google login:", err);
-      alert("Erreur de connexion Google");
+      alert("Erreur de connexion Google", error);
     },
   }
 );
