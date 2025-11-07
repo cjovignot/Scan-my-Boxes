@@ -1,16 +1,10 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, User, ScanQrCode, KeyRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext"; // ✅ Import AuthContext
 
 const BottomNav = () => {
-  const [user, setUser] = useState<any>(null);
-
-  // 🔍 Vérifie si un utilisateur est stocké dans localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-  }, []);
+  const { user } = useAuth(); // ✅ Récupère l'utilisateur connecté
 
   const handleFabClick = () => alert("🚀 Action rapide !");
 
@@ -18,7 +12,7 @@ const BottomNav = () => {
     { to: "/", icon: <Home size={22} strokeWidth={0.75} />, label: "Accueil" },
   ];
 
-  // 🔁 Si user connecté → afficher profil, sinon login + register
+  // 🔁 Si user connecté → afficher profil, sinon login
   const navItemsRight = user
     ? [
         {
@@ -52,11 +46,7 @@ const BottomNav = () => {
                 <motion.div
                   whileTap={{ scale: 0.9 }}
                   animate={{ scale: isActive ? 1.15 : 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 20,
-                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className={`flex flex-col items-center justify-center gap-1 transition-colors ${
                     isActive ? "text-yellow-400" : "text-gray-400"
                   }`}
@@ -88,11 +78,7 @@ const BottomNav = () => {
                 <motion.div
                   whileTap={{ scale: 0.9 }}
                   animate={{ scale: isActive ? 1.15 : 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 20,
-                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className={`flex flex-col items-center justify-center gap-1 transition-colors ${
                     isActive ? "text-yellow-400" : "text-gray-400"
                   }`}
