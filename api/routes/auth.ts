@@ -6,7 +6,17 @@ import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import path from "path";
 
-// ✅ POST /api/user/google-login
+// ✅ Charge le .env correctement même en local
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+const router = Router();
+
+// ✅ Utilise le vrai client ID backend (pas celui du front)
+const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID;
+const googleClient = new OAuth2Client(googleClientId);
+
+
+// ✅ POST /api/auth/google-login
 router.post("/google-login", async (req, res) => {
   await connectDB();
   const { token } = req.body;
