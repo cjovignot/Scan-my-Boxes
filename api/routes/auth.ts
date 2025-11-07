@@ -68,3 +68,5 @@ router.post("/google-login", async (req, res) => {
     res.status(401).json({ error: "Token Google invalide." });
   }
 });
+
+export default router;
