@@ -1,32 +1,33 @@
 import UserForm from "../components/UserForm";
 import { SocialLogin } from "../components/SocialLogin";
-import axiosClient from "../api/axiosClient";
 import { useNavigate } from "react-router-dom";
+import { useApiMutation } from "../hooks/useApiMutation";
 
 const Login = () => {
   const navigate = useNavigate();
 
-  const handleLogin = async ({ provider, token, profile }: any) => {
-    try {
-      const res = await axiosClient.post("api/user/google-login", {
-        provider,
-        token,
-        profile,
-      });
-
-      const data = res.data;
-
+  // ✅ Mutation Google Login
+  const { mutate: loginWithGoogle } = useApiMutation<
+    { user: any }, // réponse attendue
+    { provider: string; token: string; profile: any } // payload envoyé
+  >("/api/user/google-login", "POST", {
+    onSuccess: (data) => {
       if (!data?.user) {
-        throw new Error("Utilisateur non trouvé dans la réponse du serveur.");
+        alert("Utilisateur non trouvé dans la réponse du serveur.");
+        return;
       }
-
+      // ✅ Sauvegarde utilisateur
       localStorage.setItem("user", JSON.stringify(data.user));
-
       navigate("/home");
-    } catch (error: any) {
-      console.error("❌ Erreur Google Login :", error.response?.data || error);
-      alert("Erreur de connexion Google");
-    }
+    },
+    onError: (error) => {
+      console.error("❌ Erreur Google Login:", error);
+      alert("Erreur de connexion via Google");
+    },
+  });
+
+  const handleLogin = ({ provider, token, profile }: any) => {
+    loginWithGoogle({ provider, token, profile });
   };
 
   return (
