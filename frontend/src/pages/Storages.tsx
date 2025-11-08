@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
-import { Pencil, Trash, Plus } from "lucide-react";
+import { Pencil, Trash, Plus, ArrowUpDown } from "lucide-react";
 
 type Storage = {
   _id: string;
@@ -12,6 +12,8 @@ type Storage = {
 
 const Storages = () => {
   const [search, setSearch] = useState("");
+  const [sortMode, setSortMode] = useState<"name" | "boxCount">("name");
+  const [ascending, setAscending] = useState(true);
 
   const storageData: Storage[] = [
     {
@@ -37,9 +39,21 @@ const Storages = () => {
     },
   ];
 
-  const filteredData = storageData.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = storageData
+    .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortMode === "name") {
+        return ascending
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      }
+      if (sortMode === "boxCount") {
+        return ascending
+          ? a.boxes.length - b.boxes.length
+          : b.boxes.length - a.boxes.length;
+      }
+      return 0;
+    });
 
   return (
     <PageWrapper>
@@ -58,16 +72,37 @@ const Storages = () => {
           className="w-full px-4 py-2 mb-4 text-sm text-white bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400"
         />
 
+        {/* Tri + ordre */}
+        <div className="flex items-center justify-between mb-6">
+          {/* Sélecteur de mode tri */}
+          <select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as "name" | "boxCount")}
+            className="px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400"
+          >
+            <option value="name">Nom (A → Z)</option>
+            <option value="boxCount">Nombre de boîtes</option>
+          </select>
+
+          {/* Toggle d'ordre */}
+          <button
+            onClick={() => setAscending(!ascending)}
+            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700"
+          >
+            <ArrowUpDown size={16} />
+            {ascending ? "Croissant" : "Décroissant"}
+          </button>
+        </div>
+
         {/* Bouton Ajouter */}
-        <button
-          className="flex items-center justify-center w-full gap-2 px-4 py-2 mb-6 text-sm font-medium text-black bg-yellow-400 rounded-lg"
-        >
-          <Plus size={18} /> Ajouter un entrepôt
+        <button className="flex items-center justify-center w-full gap-2 px-4 py-2 mb-6 text-sm font-medium text-black bg-yellow-400 rounded-lg">
+          <Plus size={18} />
+          Ajouter un entrepôt
         </button>
 
-        {/* Liste filtrée */}
+        {/* Liste */}
         <div className="flex flex-col w-full gap-4">
-          {filteredData.map((storage) => (
+          {filtered.map((storage) => (
             <div
               key={storage._id}
               className="flex flex-col p-4 bg-gray-800 rounded-xl border border-gray-700"
