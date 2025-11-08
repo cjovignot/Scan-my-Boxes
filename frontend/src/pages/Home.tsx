@@ -80,16 +80,16 @@ const Home = () => {
         </h1>
 
         {/* Barre de recherche + bouton création */}
-        <div className="flex gap-3">
+       <div className="flex gap-3">
           <input
             type="text"
             placeholder="Rechercher un objet..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-5/6 w-full px-4 py-2 mb-4 text-white bg-gray-800 border border-gray-700 rounded-lg text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
+            className="w-full px-4 py-2 mb-4 text-white bg-gray-800 border border-gray-700 rounded-lg flex-5/6 text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
           />
 
-          <button className="flex flex-1-6 items-center justify-center w-full gap-2 px-4 py-2 mb-4 text-sm font-medium text-black bg-yellow-400 rounded-lg">
+          <button className="flex items-center justify-center w-full gap-2 px-4 py-2 mb-4 text-sm font-medium text-black bg-yellow-400 rounded-lg flex-1/6">
             <Plus size={18} />
           </button>
         </div>
