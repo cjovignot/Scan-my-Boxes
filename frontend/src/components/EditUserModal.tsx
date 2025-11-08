@@ -1,4 +1,3 @@
-// frontend/components/EditUserModal.tsx
 import { useEffect, useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
@@ -10,25 +9,37 @@ type EditUserModalProps = {
   onSuccess?: () => void;
 };
 
-// Simple toast pour afficher un message temporaire
-const Toast = ({ message, onClose }: { message: string; onClose: () => void }) => {
+// ✅ Simple toast temporaire
+const Toast = ({
+  message,
+  onClose,
+}: {
+  message: string;
+  onClose: () => void;
+}) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
+    <div className="fixed px-4 py-2 text-white bg-gray-800 rounded shadow-lg bottom-4 right-4">
       {message}
     </div>
   );
 };
 
-export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserModalProps) => {
+export const EditUserModal = ({
+  userId,
+  isOpen,
+  onClose,
+  onSuccess,
+}: EditUserModalProps) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    role: "user", // ✅ ajout du champ rôle
   });
   const [toast, setToast] = useState<string | null>(null);
 
@@ -37,6 +48,7 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
     _id: string;
     name: string;
     email: string;
+    role: string;
   }>(userId ? `/api/user/${userId}` : "", { skip: !userId });
 
   useEffect(() => {
@@ -45,6 +57,7 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
         name: user.name,
         email: user.email,
         password: "",
+        role: user.role || "user",
       });
     }
   }, [user]);
@@ -55,7 +68,7 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
     Partial<typeof formData>
   >(userId ? `/api/user/${userId}` : "", "PATCH", {
     onSuccess: (data) => {
-      setToast(data.message); // afficher le message succès
+      setToast(data.message);
       if (onSuccess) onSuccess();
       onClose();
     },
@@ -64,9 +77,11 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
     },
   });
 
-  if (!isOpen) return null; // cacher la modal si fermée
+  if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -81,7 +96,7 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-        <div className="w-full max-w-md p-6 bg-gray-900 rounded-xl text-white shadow-lg">
+        <div className="w-full max-w-md p-6 text-white bg-gray-900 shadow-lg rounded-xl">
           <h2 className="mb-4 text-lg font-semibold text-yellow-400">
             Modifier l’utilisateur
           </h2>
@@ -108,7 +123,9 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
             </div>
 
             <div>
-              <label className="block mb-1 text-sm">Nouveau mot de passe (optionnel)</label>
+              <label className="block mb-1 text-sm">
+                Nouveau mot de passe (optionnel)
+              </label>
               <input
                 name="password"
                 type="password"
@@ -116,6 +133,20 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded"
               />
+            </div>
+
+            {/* ✅ Sélecteur de rôle */}
+            <div>
+              <label className="block mb-1 text-sm">Rôle</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded"
+              >
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
             </div>
 
             {error && <p className="text-sm text-red-400">{error}</p>}
@@ -131,7 +162,7 @@ export const EditUserModal = ({ userId, isOpen, onClose, onSuccess }: EditUserMo
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 text-sm font-semibold bg-yellow-500 text-black rounded hover:bg-yellow-400"
+                className="px-4 py-2 text-sm font-semibold text-black bg-yellow-500 rounded hover:bg-yellow-400"
               >
                 {loading ? "Sauvegarde..." : "Enregistrer"}
               </button>
