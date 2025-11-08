@@ -15,7 +15,7 @@ const Login = () => {
     onSuccess: (data) => {
       if (!data?.user) return alert("Utilisateur non trouvé");
       setUser(data.user);
-      navigate("/profile");
+      window.location.href = "/profile";
     },
     onError: (err) => {
       console.error("Erreur Google login:", err);
