@@ -46,7 +46,7 @@ const AuthSuccess = () => {
   }, [email]);
 
   return (
-    <div className="flex items-center justify-center text-white bg-gray-950">
+    <div className="flex items-center min-h-screen justify-center text-white bg-gray-950">
       <p
         className={`text-lg ${
           message.includes("🔄")
