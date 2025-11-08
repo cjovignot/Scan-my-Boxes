@@ -6,7 +6,7 @@ const Storages = () => {
 
   return (
     <PageWrapper>
-      <div className="flex flex-col items-center px-6 py-10 text-white bg-gray-950">
+      <div className="flex flex-col items-center px-6 py-10 text-white">
         {/* Titre principal */}
         <h1 className="mb-6 text-4xl font-bold text-center text-yellow-400">
           Entrepôts
