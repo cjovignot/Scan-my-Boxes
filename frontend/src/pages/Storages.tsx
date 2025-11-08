@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
-import { Pencil, Trash, Plus, ArrowUpDown } from "lucide-react";
+import { Pencil, Trash, Plus, ArrowUpDown, ChevronDown } from "lucide-react";
 
 type Storage = {
   _id: string;
@@ -20,7 +20,10 @@ const Storages = () => {
       _id: "6743bdc7f1a3c2a91e15d9aa",
       name: "Garage Maison",
       address: "12 Rue des Peupliers, Rennes",
-      boxes: [{ id: "A1", label: "Vêtements" }, { id: "A2", label: "Livres" }],
+      boxes: [
+        { id: "A1", label: "Vêtements" },
+        { id: "A2", label: "Livres" },
+      ],
       ownerId: "user123",
     },
     {
@@ -55,50 +58,61 @@ const Storages = () => {
   return (
     <PageWrapper>
       <div className="flex flex-col px-6 py-10 text-white">
-
-        <h1 className="mb-6 text-4xl font-bold text-center text-yellow-400">
+        <h1 className="mb-10 text-4xl font-bold text-center text-yellow-400">
           Entrepôts
         </h1>
 
-        <button className="flex items-center justify-center w-full gap-2 px-4 py-2 mb-6 text-sm font-medium text-black bg-yellow-400 rounded-lg">
-          <Plus size={18} />
-          Ajouter un entrepôt
-        </button>
+        <div className="flex gap-3">
+          <input
+            type="text"
+            placeholder="Rechercher par nom..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-4 py-2 mb-4 text-white bg-gray-800 border border-gray-700 rounded-lg flex-5/6 text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
+          />
 
-        <input
-          type="text"
-          placeholder="Rechercher par nom..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-4 py-2 mb-4 text-md text-white bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400"
-        />
+          <button className="flex items-center justify-center w-full gap-2 px-4 py-2 mb-4 text-sm font-medium text-black bg-yellow-400 rounded-lg flex-1/6">
+            <Plus size={18} />
+          </button>
+        </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative flex-3/5">
+            <select
+              value={sortMode}
+              onChange={(e) =>
+                setSortMode(e.target.value as "name" | "boxCount")
+              }
+              className="w-full px-3 py-2 pr-10 text-sm text-white transition-colors bg-gray-800 border border-gray-700 rounded-lg appearance-none focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
+            >
+              <option value="name">Nom alphabétique</option>
+              <option value="boxCount">Nombre de boîtes</option>
+            </select>
 
-          {/* Sélecteur de tri avec le même style que le toggle */}
-          <select
-            value={sortMode}
-            onChange={(e) => setSortMode(e.target.value as "name" | "boxCount")}
-            className="px-3 py-3 text-sm bg-gray-800 border border-gray-700 rounded-lg focus:outline-none hover:bg-gray-700"
-          >
-            <option value="name">Nom alphabétique</option>
-            <option value="boxCount">Nombre de boîtes</option>
-          </select>
+            <ChevronDown
+              size={16}
+              className="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-1/2"
+            />
+          </div>
 
           <button
             onClick={() => setAscending(!ascending)}
-            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700"
+            className="flex items-center justify-center gap-2 px-3 py-2 text-sm transition-colors bg-gray-800 border border-gray-700 rounded-lg flex-2/5 hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400"
           >
             <ArrowUpDown size={16} />
             {ascending ? "Croissant" : "Décroissant"}
           </button>
+        </div>
+        {/* 🔸 Séparateur stylé */}
+        <div className="w-full my-4">
+          <div className="w-full border-t border-gray-700" />
         </div>
 
         <div className="flex flex-col w-full gap-4">
           {filtered.map((storage) => (
             <div
               key={storage._id}
-              className="flex flex-col p-4 bg-gray-800 rounded-xl border border-gray-700"
+              className="flex flex-col p-4 bg-gray-800 border border-gray-700 rounded-xl"
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-yellow-300">
