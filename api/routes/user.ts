@@ -1,27 +1,33 @@
 import { Router } from "express";
-import { User } from "../models/User";
-import { connectDB } from "../utils/db";
 import bcrypt from "bcryptjs";
-import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import path from "path";
+import { connectDB } from "../utils/db";
+import {
+  createUser,
+  findAllUsers,
+  findUserById,
+  findUserByEmail,
+  updateUserById,
+  deleteUserById,
+} from "../controllers/userController";
 
-// ✅ Charge le .env correctement même en local
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const router = Router();
 
-// ✅ Utilise le vrai client ID backend (pas celui du front)
-const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID;
-const googleClient = new OAuth2Client(googleClientId);
-
-
-// ✅ GET - tous les utilisateurs
-router.get("/", async (req, res) => {
+// ✅ Connexion MongoDB
+router.use(async (_req, _res, next) => {
   await connectDB();
+  next();
+});
 
+// ===============================
+// 🔹 GET - Tous les utilisateurs
+// ===============================
+router.get("/", async (_req, res) => {
   try {
-    const users = await User.find().sort({ createdAt: -1 });
+    const users = await findAllUsers();
     res.json(users);
   } catch (error) {
     console.error("❌ Erreur récupération utilisateurs :", error);
@@ -29,14 +35,16 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ GET - un utilisateur par ID
+// ======================================
+// 🔹 GET - Un utilisateur par ID
+// ======================================
 router.get("/:id", async (req, res) => {
-  await connectDB();
-
   try {
-    const user = await User.findById(req.params.id);
-    if (!user)
+    const user = await findUserById(req.params.id);
+    if (!user) {
       return res.status(404).json({ error: "Utilisateur introuvable." });
+    }
+
     res.json(user);
   } catch (error) {
     console.error("❌ Erreur récupération user :", error);
@@ -44,67 +52,57 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ POST - création d'un utilisateur classique
+// ========================================
+// 🔹 POST - Création d’un utilisateur local
+// ========================================
 router.post("/", async (req, res) => {
-  await connectDB();
-
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ error: "Champs requis manquants." });
 
-    const hash = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ name, email, password: hash });
-    res.status(201).json({ message: "✅ Utilisateur créé", user: newUser });
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await createUser({ name, email, password: hashed });
+    res.status(201).json({ message: "✅ Utilisateur créé", user });
   } catch (error) {
     console.error("Erreur création user:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur." });
   }
 });
 
-// ✅ PATCH - modification d’un utilisateur
+// ===================================
+// 🔹 PATCH - Mise à jour d’un utilisateur par ID
+// ===================================
 router.patch("/:id", async (req, res) => {
-  await connectDB();
-
   try {
-    const { name, email, password } = req.body;
-    const updateData: any = {};
+    const { id } = req.params;
+    const updates = req.body;
 
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
-    if (password && password.trim() !== "") {
-      updateData.password = await bcrypt.hash(password, 10);
+    // Hachage du mot de passe si nécessaire
+    if (updates.password && updates.password.trim() !== "") {
+      updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      {
-        new: true,
-      }
-    );
-
-    if (!updatedUser) {
+    const updatedUser = await updateUserById(id, updates);
+    if (!updatedUser)
       return res.status(404).json({ error: "Utilisateur introuvable." });
-    }
 
     res.json({ message: "✅ Utilisateur mis à jour", user: updatedUser });
   } catch (error) {
     console.error("Erreur mise à jour user:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur." });
   }
 });
 
-// ✅ DELETE - suppression d’un utilisateur
+// ===================================
+// 🔹 DELETE - Suppression d’un utilisateur par ID
+// ===================================
 router.delete("/:id", async (req, res) => {
-  await connectDB();
-
   try {
-    const deletedUser = await User.findByIdAndDelete(req.params.id);
-
-    if (!deletedUser) {
+    const { id } = req.params;
+    const deleted = await deleteUserById(id);
+    if (!deleted)
       return res.status(404).json({ error: "Utilisateur introuvable." });
-    }
 
     res.json({ message: "🗑️ Utilisateur supprimé." });
   } catch (error) {

@@ -14,9 +14,9 @@ import { useEffect } from "react";
 function App() {
   const location = useLocation();
 
-  // ✅ (1) Enregistrement manuel du service worker (utile si tu veux plus de contrôle)
+  // ✅ (1) Enregistrement du Service Worker (uniquement en production)
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
           .register("/sw.js")
@@ -25,6 +25,8 @@ function App() {
           )
           .catch((err) => console.error("🔴 Erreur Service Worker :", err));
       });
+    } else {
+      console.log("⚙️ Service Worker ignoré (mode développement)");
     }
   }, []);
 

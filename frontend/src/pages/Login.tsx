@@ -12,12 +12,11 @@ const Login = () => {
   const { mutate: loginWithGoogle } = useApiMutation<
     { user: any },
     { token: string }
-  >("/api/auth/google-login", "POST", {
+  >(`${import.meta.env.VITE_API_URL}/api/auth/google-login`, "POST", {
     onSuccess: (data) => {
       if (!data?.user) return alert("Utilisateur non trouvé");
-      // 🔹 Mise à jour du context + localStorage automatiquement via AuthContext
       setUser(data.user);
-      navigate("/profile"); // navigation après login
+      navigate("/profile");
     },
     onError: (err) => {
       console.error("Erreur Google login:", err);
