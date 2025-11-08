@@ -44,7 +44,7 @@ const Profile = () => {
 
   return (
     <PageWrapper>
-      <div className="flex flex-col items-center px-6 py-10 text-white bg-gray-950">
+      <div className="flex flex-col items-center px-6 py-10 text-white">
         {/* 📄 Carte Profil */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
