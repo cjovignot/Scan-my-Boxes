@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApiMutation } from "../hooks/useApiMutation";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,36 +9,54 @@ const AuthSuccess = () => {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const { mutate } = useApiMutation<{ user: any }, { email: string }>(
-    `${import.meta.env.VITE_API_URL}/api/user/by-email`,
-    "POST",
+  const [message, setMessage] = useState("🔄 Connexion en cours...");
+
+  const { mutate } = useApiMutation<{ user: any }>(
+    // 👇 on appelle la route GET mais avec une "mutation" personnalisée
+    `${import.meta.env.VITE_API_URL}/api/user/by-email/${email}`,
+    "GET",
     {
       onSuccess: (data) => {
-        if (data.user) {
+        if (data?.user) {
           setUser(data.user);
-          navigate("/profile"); // ou ta page principale
+          setMessage("✅ Connexion réussie !");
+          setTimeout(() => navigate("/profile"), 800);
         } else {
-          navigate("/login");
+          setMessage("⚠️ Utilisateur introuvable.");
+          setTimeout(() => navigate("/login"), 1000);
         }
       },
-      onError: () => {
-        navigate("/login");
+      onError: (err) => {
+        console.error("❌ Erreur de connexion :", err);
+        setMessage("❌ Erreur lors de la connexion.");
+        setTimeout(() => navigate("/login"), 1000);
       },
     }
   );
 
   useEffect(() => {
-    if (email) {
-      mutate({ email });
-    } else {
-      navigate("/login");
+    if (!email) {
+      setMessage("⚠️ Email manquant.");
+      setTimeout(() => navigate("/login"), 800);
+      return;
     }
+
+    // 👇 On déclenche la "mutation" GET manuellement
+    mutate();
   }, [email]);
 
   return (
     <div className="flex items-center justify-center min-h-screen text-white bg-gray-950">
-      <p className="text-lg text-yellow-400 animate-pulse">
-        🔄 Connexion en cours...
+      <p
+        className={`text-lg ${
+          message.includes("🔄")
+            ? "text-yellow-400 animate-pulse"
+            : message.includes("✅")
+            ? "text-green-400"
+            : "text-red-400"
+        }`}
+      >
+        {message}
       </p>
     </div>
   );

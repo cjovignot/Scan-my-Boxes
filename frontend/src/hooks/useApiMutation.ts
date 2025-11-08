@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axiosClient from "../api/axiosClient";
 
-type HttpMethod = "POST" | "PUT" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface MutationOptions<TData = unknown> {
   onSuccess?: (data: TData) => void;
@@ -32,15 +32,14 @@ export function useApiMutation<TResponse = unknown, TBody = unknown>(
       setData(response.data);
       options.onSuccess?.(response.data);
       return response.data;
-
     } catch (err: any) {
       console.error("API Mutation Error:", err);
 
-      const message = err.response?.data?.error || err.message || "Erreur inconnue";
+      const message =
+        err.response?.data?.error || err.message || "Erreur inconnue";
       setError(message);
       options.onError?.(err);
       throw err;
-
     } finally {
       setLoading(false);
     }
