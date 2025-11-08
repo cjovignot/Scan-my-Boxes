@@ -90,7 +90,7 @@ const Home = () => {
           />
 
           <button className="flex items-center justify-center w-full gap-2 px-4 py-2 mb-4 text-sm font-medium text-black bg-yellow-400 rounded-lg">
-            <Plus size={18} /> Nouvelle boîte
+            <Plus size={18} />
           </button>
         </div>
 
