@@ -7,10 +7,9 @@ type SocialLoginProps = {
 export const SocialLogin = ({ onLogin }: SocialLoginProps) => {
   const [logs, setLogs] = useState<string[]>([]);
 
-  // 🔧 Fonction utilitaire pour afficher les logs dans le composant
-  const addLog = (message: string) => {
+  const log = (message: string) => {
+    console.log(message);
     setLogs((prev) => [...prev, message]);
-    console.log(message); // aussi utile si on est sur desktop
   };
 
   useEffect(() => {
@@ -25,22 +24,23 @@ export const SocialLogin = ({ onLogin }: SocialLoginProps) => {
 
     const redirectUrl = `${API_URL}/api/auth/google-redirect?source=pwa`;
 
-    addLog(`🔹 GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}`);
-    addLog(`🔹 API_URL: ${API_URL}`);
-    addLog(`🔹 Mode PWA: ${isStandalone}`);
-    addLog(`🔹 URL de redirection: ${redirectUrl}`);
+    log(`🔹 GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}`);
+    log(`🔹 API_URL: ${API_URL}`);
+    log(`🔹 Mode PWA: ${isStandalone}`);
+    log(`🔹 URL de redirection: ${redirectUrl}`);
 
+    // 🟡 Si on est en PWA, ouverture directe dans un nouvel onglet
     if (isStandalone) {
-      addLog("🟡 PWA détectée → redirection vers Google OAuth...");
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1500);
+      log(
+        "🟡 PWA détectée → ouverture du flux Google OAuth dans le navigateur..."
+      );
+      window.open(redirectUrl, "_blank");
       return;
     }
 
+    // 🟢 Mode navigateur classique → flux popup Google Identity
     const handleCredentialResponse = (response: any) => {
       if (response?.credential) {
-        addLog("✅ Jeton Google reçu !");
         onLogin({ token: response.credential });
       }
     };
@@ -66,28 +66,24 @@ export const SocialLogin = ({ onLogin }: SocialLoginProps) => {
       }
     );
 
-    addLog("🟢 Bouton Google rendu.");
+    log("🟢 Bouton Google rendu.");
   }, [onLogin]);
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      {/* 🔹 Bouton Google */}
+    <div className="flex flex-col items-center gap-4">
       <div
         id="googleSignIn"
         className="overflow-hidden transition-transform duration-200 rounded-full shadow-md hover:shadow-lg hover:scale-105"
       ></div>
 
-      {/* 🔹 Zone de debug visible à l’écran */}
-      {logs.length > 0 && (
-        <div className="w-full max-w-sm p-3 mt-4 overflow-y-auto text-xs text-left text-green-300 bg-gray-900 border border-gray-700 rounded-lg max-h-48">
-          <p className="mb-2 font-semibold text-yellow-400">🧩 Debug Log</p>
-          {logs.map((log, i) => (
-            <div key={i} className="py-1 border-t border-gray-700">
-              {log}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* 🔍 Zone de logs visible même sur mobile */}
+      <div className="w-full max-w-xs p-2 mt-4 text-xs text-gray-400 bg-gray-900 rounded-lg">
+        {logs.map((line, i) => (
+          <div key={i} className="whitespace-pre-wrap">
+            {line}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
