@@ -35,6 +35,28 @@ router.get("/", async (_req, res) => {
   }
 });
 
+// ===================================
+// 🔹 GET - Récupération d’un utilisateur par email
+// ===================================
+router.get("/by-email/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    if (!email) {
+      return res.status(400).json({ error: "Email manquant." });
+    }
+
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur introuvable." });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error("Erreur récupération user par email:", error);
+    res.status(500).json({ error: "Erreur serveur." });
+  }
+});
+
 // ======================================
 // 🔹 GET - Un utilisateur par ID
 // ======================================

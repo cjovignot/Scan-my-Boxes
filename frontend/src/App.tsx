@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
+import AuthSuccess from "./pages/AuthSuccess";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { useEffect } from "react";
 
@@ -55,6 +56,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/auth/success" element={<AuthSuccess />} />
           </Route>
         </Routes>
       </AnimatePresence>

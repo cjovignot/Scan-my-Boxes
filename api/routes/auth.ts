@@ -171,9 +171,8 @@ router.get("/google-callback", async (req, res) => {
     }
 
     const frontendUrl =
-      process.env.FRONTEND_URL || "https://ton-domaine.vercel.app";
+      process.env.FRONTEND_URL || "https://scan-my-boxes.vercel.app";
 
-    // 🔁 Redirige vers le frontend
     res.redirect(
       `${frontendUrl}/auth/success?email=${encodeURIComponent(email)}`
     );
