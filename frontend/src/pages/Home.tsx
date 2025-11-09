@@ -154,7 +154,7 @@ const Dashboard = () => {
   return (
     <PageWrapper>
       <div className="flex flex-col px-6 py-10 text-white">
-        <h1 className="mb-10 text-4xl font-bold text-center text-yellow-400">
+        <h1 className="mb-20 text-4xl font-bold text-center text-yellow-400">
           📊 Tableau de bord
         </h1>
 
