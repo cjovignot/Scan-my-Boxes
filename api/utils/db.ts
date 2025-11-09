@@ -7,10 +7,16 @@ export const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
 
   const uri = process.env.MONGODB_URI!;
+  if (!uri) {
+    console.error("❌ MONGODB_URI non défini dans .env");
+    process.exit(1);
+  }
+
   try {
     await mongoose.connect(uri);
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connecté :", uri);
   } catch (err) {
-    console.error("MongoDB connection error:", err);
+    console.error("❌ Erreur de connexion MongoDB :", err);
+    process.exit(1);
   }
 };

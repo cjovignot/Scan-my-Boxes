@@ -1,13 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { Pencil, Trash, Plus, ArrowUpDown, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useApi } from "../hooks/useApi";
+import { useApiMutation } from "../hooks/useApiMutation";
+
+type ContentItem = {
+  name: string;
+  quantity: number;
+  picture?: string;
+};
 
 type Box = {
   _id: string;
   ownerId: string;
   storageId: string;
   number: string;
-  content: string[];
+  content: ContentItem[];
   destination: string;
   qrcodeURL: string;
   dimensions: {
@@ -17,44 +26,13 @@ type Box = {
   };
 };
 
-// --- Données de test ---
-const mockBoxes: Box[] = [
-  {
-    _id: "box1",
-    ownerId: "user123",
-    storageId: "storageA",
-    number: "001",
-    content: ["T-shirt", "Chaussures", "Livre"],
-    destination: "Chambre",
-    qrcodeURL:
-      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=box1",
-    dimensions: { width: 40, height: 30, depth: 20 },
-  },
-  {
-    _id: "box2",
-    ownerId: "user123",
-    storageId: "storageB",
-    number: "002",
-    content: ["Vase", "Plaid"],
-    destination: "Salon",
-    qrcodeURL:
-      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=box2",
-    dimensions: { width: 50, height: 25, depth: 25 },
-  },
-  {
-    _id: "box3",
-    ownerId: "user123",
-    storageId: "storageC",
-    number: "003",
-    content: ["Chaise", "Tablette", "Lampe"],
-    destination: "Salon",
-    qrcodeURL:
-      "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=box3",
-    dimensions: { width: 60, height: 40, depth: 30 },
-  },
-];
+type Storage = {
+  _id: string;
+  name: string;
+};
 
 const Boxes = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState<"destination" | "objectCount">(
     "destination"
@@ -65,26 +43,62 @@ const Boxes = () => {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  // --- Filtrage + tri dynamique ---
-  const filteredBoxes = mockBoxes
-    .filter((box) =>
-      box.content.some((item) =>
-        item.toLowerCase().includes(search.toLowerCase())
-      )
-    )
-    .sort((a, b) => {
-      if (sortMode === "destination") {
-        return ascending
-          ? a.destination.localeCompare(b.destination)
-          : b.destination.localeCompare(a.destination);
-      } else {
-        return ascending
-          ? a.content.length - b.content.length
-          : b.content.length - a.content.length;
-      }
-    });
+  // ============================
+  // 🔹 Récupération des boîtes
+  // ============================
+  const { data: boxes, loading, error, refetch } = useApi<Box[]>("/api/boxes");
 
-  // --- Gestion du scroll et espacement ---
+  // ============================
+  // 🔹 Récupération des entrepôts
+  // ============================
+  const { data: storages } = useApi<Storage[]>("/api/storages");
+
+  // ============================
+  // 🔹 Mutation : suppression d’une boîte
+  // ============================
+  const { mutate: deleteBox, loading: deleting } = useApiMutation<
+    { success: boolean },
+    void
+  >("/api/boxes", "DELETE", {
+    onSuccess: () => {
+      refetch();
+    },
+    onError: (err) => {
+      console.error("Erreur suppression boîte :", err);
+      alert("❌ Impossible de supprimer la boîte");
+    },
+  });
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Supprimer cette boîte ?")) return;
+    await deleteBox(undefined, { url: `/api/boxes/${id}` });
+  };
+
+  // ============================
+  // 🔹 Filtrage + tri
+  // ============================
+  const filteredBoxes =
+    boxes
+      ?.filter((box) =>
+        box.content.some((item) =>
+          item.name.toLowerCase().includes(search.toLowerCase())
+        )
+      )
+      .sort((a, b) => {
+        if (sortMode === "destination") {
+          return ascending
+            ? a.destination.localeCompare(b.destination)
+            : b.destination.localeCompare(a.destination);
+        } else {
+          return ascending
+            ? a.content.length - b.content.length
+            : b.content.length - a.content.length;
+        }
+      }) ?? [];
+
+  // ============================
+  // 🔹 Gestion du scroll & header sticky
+  // ============================
   const updateContentOffset = () => {
     const headerHeight = headerRef.current?.offsetHeight ?? 0;
     if (contentRef.current) {
@@ -98,12 +112,9 @@ const Boxes = () => {
     if (headerRef.current) ro.observe(headerRef.current);
     window.addEventListener("resize", updateContentOffset);
 
-    // --- Ajout : écoute du scroll sur le container, pas sur window ---
     const content = contentRef.current;
     const onScroll = () => {
-      if (content) {
-        setScrolled(content.scrollTop > 0);
-      }
+      if (content) setScrolled(content.scrollTop > 0);
     };
     content?.addEventListener("scroll", onScroll);
 
@@ -114,6 +125,15 @@ const Boxes = () => {
     };
   }, []);
 
+  // ============================
+  // 🔹 Helper : retrouver le nom d’un entrepôt
+  // ============================
+  const getStorageName = (id: string) =>
+    storages?.find((s) => s._id === id)?.name || "Inconnu";
+
+  // ============================
+  // 🔹 Rendu
+  // ============================
   return (
     <PageWrapper>
       <div className="relative min-h-screen text-white">
@@ -135,6 +155,7 @@ const Boxes = () => {
               className="w-full px-4 py-1 text-white bg-gray-800 border border-gray-700 rounded-lg text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
             />
             <button
+              onClick={() => navigate("/boxes/new")}
               className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black transition bg-yellow-400 rounded-lg hover:bg-yellow-500"
               aria-label="Ajouter une boîte"
             >
@@ -178,54 +199,66 @@ const Boxes = () => {
           className="w-full max-w-screen-xl px-6 pb-20 mx-auto overflow-y-auto hide-scrollbar"
         >
           <div className="pt-6 space-y-4">
-            {filteredBoxes.map((box) => (
-              <div
-                key={box._id}
-                className="flex flex-col p-4 bg-gray-800 border border-gray-700 rounded-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-yellow-300">
-                    Boîte #{box.number}
-                  </h2>
-                  <div className="flex items-center gap-3">
-                    <button className="p-2 transition-colors rounded hover:bg-gray-700">
-                      <Pencil size={18} />
-                    </button>
-                    <button className="p-2 transition-colors rounded hover:bg-red-700">
-                      <Trash size={18} />
-                    </button>
+            {loading ? (
+              <p className="text-center text-gray-400">Chargement...</p>
+            ) : error ? (
+              <p className="text-center text-red-500">{error}</p>
+            ) : filteredBoxes.length > 0 ? (
+              filteredBoxes.map((box) => (
+                <div
+                  key={box._id}
+                  className="flex flex-col p-4 bg-gray-800 border border-gray-700 rounded-xl"
+                >
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-yellow-300">
+                      {box.number}
+                    </h2>
+                    <div className="flex items-center gap-3">
+                      <button
+                        className="p-2 transition-colors rounded hover:bg-gray-700"
+                        onClick={() => navigate(`/boxes/edit/${box._id}`)}
+                      >
+                        <Pencil size={18} />
+                      </button>
+                      <button
+                        className="p-2 transition-colors rounded hover:bg-red-700"
+                        disabled={deleting}
+                        onClick={() => handleDelete(box._id)}
+                      >
+                        <Trash size={18} />
+                      </button>
+                    </div>
                   </div>
+
+                  <p className="mt-2 text-sm text-gray-400">
+                    Destination :{" "}
+                    <span className="font-medium text-yellow-400">
+                      {box.destination}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Entrepôt :{" "}
+                    <span className="font-medium text-yellow-400">
+                      {getStorageName(box.storageId)}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Objets :{" "}
+                    <span className="font-medium text-yellow-400">
+                      {box.content.length}
+                    </span>
+                  </p>
+
+                  <p className="mt-2 text-sm text-gray-400">
+                    Dimensions :{" "}
+                    <span className="font-medium text-yellow-400">
+                      {box.dimensions.width}×{box.dimensions.height}×
+                      {box.dimensions.depth} cm
+                    </span>
+                  </p>
                 </div>
-
-                <p className="mt-2 text-sm text-gray-400">
-                  Destination :{" "}
-                  <span className="font-medium text-yellow-400">
-                    {box.destination}
-                  </span>
-                </p>
-                <p className="text-sm text-gray-400">
-                  Entrepôt :{" "}
-                  <span className="font-medium text-yellow-400">
-                    {box.storageId}
-                  </span>
-                </p>
-                <p className="text-sm text-gray-400">
-                  Objets :{" "}
-                  <span className="font-medium text-yellow-400">
-                    {box.content.length}
-                  </span>
-                </p>
-                <p className="text-sm text-gray-400">
-                  Dimensions :{" "}
-                  <span className="font-medium text-yellow-400">
-                    {box.dimensions.width}×{box.dimensions.height}×
-                    {box.dimensions.depth} cm
-                  </span>
-                </p>
-              </div>
-            ))}
-
-            {filteredBoxes.length === 0 && (
+              ))
+            ) : (
               <p className="text-center text-gray-400">Aucune boîte trouvée.</p>
             )}
           </div>

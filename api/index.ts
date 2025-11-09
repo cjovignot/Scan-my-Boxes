@@ -1,11 +1,14 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+
 import exampleRouter from "./routes/example";
 import userRouter from "./routes/user";
 import authRouter from "./routes/auth";
-import dotenv from "dotenv";
+import boxesRouter from "./routes/boxes";
+import storageRoutes from "./routes/storages";
+import { connectDB } from "./utils/db"; // ✅ utilise la fonction centralisée
 
-// 🔹 Charge les variables d'environnement (Vercel les injecte automatiquement)
 dotenv.config();
 
 const app = express();
@@ -48,6 +51,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/example", exampleRouter);
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/boxes", boxesRouter);
+app.use("/api/storages", storageRoutes);
 
 // ============================
 // 💡 Middleware global d’erreur
@@ -65,7 +70,14 @@ app.use(
 );
 
 // ============================
-// 🧑‍💻 Serveur local (dev uniquement)
+// 🧩 Connexion MongoDB unique
+// ============================
+(async () => {
+  await connectDB(); // ✅ Appel unique et centralisé
+})();
+
+// ============================
+// 🚀 Démarrage du serveur local
 // ============================
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3001;
