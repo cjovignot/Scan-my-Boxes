@@ -166,13 +166,13 @@ const Dashboard = () => {
               className="flex flex-col items-start justify-between p-6 transition-all duration-200 bg-gray-800 border border-gray-700 rounded-2xl hover:bg-gray-700 hover:scale-[1.02]"
             >
               <div className="flex items-center justify-between w-full">
-                <Icon size={26} className="text-yellow-400" />
+                <Icon size={20} className="text-yellow-400" />
                 <h2 className="font-semibold text-right text-yellow-400 text-md">
                   {label}
                 </h2>
               </div>
-              <p className="mt-4 text-2xl font-bold break-words">{value}</p>
-              <p className="mt-1 text-sm text-gray-400">{description}</p>
+              <p className="mt-1 text-lg font-bold break-words">{value}</p>
+              <p className="mt-1 text-xs text-gray-400">{description}</p>
             </div>
           ))}
         </div>
