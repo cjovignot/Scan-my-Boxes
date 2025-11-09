@@ -1,4 +1,6 @@
 import PageWrapper from "../components/PageWrapper";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Warehouse,
   Boxes,
@@ -61,6 +63,7 @@ const mockBoxes: Box[] = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   // 🔸 Calculs de base
   const totalWarehouses = new Set(mockBoxes.map((b) => b.storageId)).size;
   const totalBoxes = mockBoxes.length;
@@ -153,13 +156,20 @@ const Dashboard = () => {
 
   return (
     <PageWrapper>
-      <div className="flex flex-col px-6 py-10 text-white">
-        <h1 className="mb-20 text-4xl font-bold text-center text-yellow-400">
-          📊 Tableau de bord
-        </h1>
+      <div className="flex flex-col px-6 py-6 text-white">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md mb-6"
+        >
+          <h1 className="mt-4 text-3xl font-semibold text-yellow-400">
+            Tableau de bord
+          </h1>
+        </motion.div>
 
         {/* Section des cartes de stats */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {stats.map(({ id, label, value, description, icon: Icon }) => (
             <div
               key={id}

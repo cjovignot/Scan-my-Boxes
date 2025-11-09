@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
+import { motion } from "framer-motion";
 import { Pencil, Trash, Plus, ArrowUpDown, ChevronDown } from "lucide-react";
 
 // =====================================
@@ -177,6 +178,16 @@ const Boxes = () => {
               : "bg-gray-950 border-gray-800"
           }`}
         >
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-md mb-2"
+          >
+            <h1 className="mt-2 text-2xl font-semibold text-yellow-400">
+              Mes boîtes
+            </h1>
+          </motion.div>
           <div className="flex gap-3">
             <input
               type="text"
@@ -233,7 +244,7 @@ const Boxes = () => {
               Aucune boîte trouvée.
             </p>
           ) : (
-            <div className="pt-6 space-y-4">
+            <div className="pt-2 space-y-4">
               {filteredBoxes.map((box) => (
                 <div
                   key={box._id}

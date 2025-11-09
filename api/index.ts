@@ -7,6 +7,8 @@ import userRouter from "./routes/user";
 import authRouter from "./routes/auth";
 import boxesRouter from "./routes/boxes";
 import storageRoutes from "./routes/storages";
+import adminRoutes from "./routes/admin";
+
 import { connectDB } from "./utils/db"; // ✅ utilise la fonction centralisée
 
 dotenv.config();
@@ -53,6 +55,7 @@ app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/boxes", boxesRouter);
 app.use("/api/storages", storageRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ============================
 // 💡 Middleware global d’erreur

@@ -2,11 +2,10 @@ import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Home,
+  ChartNoAxesCombined,
   User,
   ScanQrCode,
   KeyRound,
-  Shield,
   Boxes,
   Box,
 } from "lucide-react";
@@ -21,11 +20,6 @@ const BottomNav = () => {
   };
 
   const navItemsLeft = [
-    {
-      to: "/",
-      icon: <Home size={22} strokeWidth={0.75} />,
-      label: "Accueil",
-    },
     {
       to: "/boxes",
       icon: <Box size={22} strokeWidth={0.75} />,
@@ -48,26 +42,13 @@ const BottomNav = () => {
         label: "Connexion",
       },
     ];
-  } else if (user.role === "admin") {
-    navItemsRight = [
-      {
-        to: "/admin",
-        icon: <Shield size={22} strokeWidth={0.75} />,
-        label: "Admin",
-      },
-      {
-        to: "/profile",
-        icon: (
-          <div className="relative">
-            <User size={22} strokeWidth={0.75} />
-            <span className="absolute top-0 right-0 block w-2 h-2 bg-green-500 rounded-full ring-2 ring-gray-900"></span>
-          </div>
-        ),
-        label: "Profil",
-      },
-    ];
   } else {
     navItemsRight = [
+      {
+        to: "/",
+        icon: <ChartNoAxesCombined size={22} strokeWidth={0.75} />,
+        label: "Stats",
+      },
       {
         to: "/profile",
         icon: (
@@ -111,7 +92,7 @@ const BottomNav = () => {
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
           onClick={handleFabClick}
-          className="absolute p-3 text-white -translate-x-1/2 bg-black border border-gray-700 rounded-full shadow-lg left-1/2 -top-8"
+          className="absolute p-3 text-yellow-400 -translate-x-1/2 border-2 rounded-full shadow-lg border-yellow-400/70 bg-gray-950 -top-3 left-1/2"
         >
           <ScanQrCode size={32} />
         </motion.button>

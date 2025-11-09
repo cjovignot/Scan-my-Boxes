@@ -2,26 +2,36 @@ import { useEffect } from "react";
 import PageWrapper from "../components/PageWrapper";
 import axiosClient from "../api/axiosClient";
 import { motion } from "framer-motion";
-import { LogOut, Trash2 } from "lucide-react";
+import { LogOut, Trash2, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 
+interface DashboardLink {
+  label: string;
+  path: string;
+  role?: "admin"; // 👈 seuls ceux avec role: "admin" seront restreints
+}
+
+const dashboardLinks: DashboardLink[] = [
+  { label: "👥 Utilisateurs", path: "/admin/users", role: "admin" },
+  // { label: "📦 Entrepôts", path: "/admin/storages", role: "admin" },
+  // { label: "📊 Statistiques", path: "/admin/stats", role: "admin" },
+  { label: "⚙️ Paramètres", path: "/settings" }, // 👈 accessible à tous
+];
+
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()!;
   const navigate = useNavigate();
 
-  // 🔍 Si pas connecté → redirige vers /login
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  // 🔐 Déconnexion
   const handleLogout = () => {
-    logout(); // ✅ Nettoie le state et localStorage
+    logout();
     navigate("/login");
   };
 
-  // 🗑️ Suppression du compte
   const handleDeleteAccount = async () => {
     if (!user?._id) return alert("Utilisateur introuvable.");
     const confirmDelete = window.confirm(
@@ -31,7 +41,7 @@ const Profile = () => {
 
     try {
       await axiosClient.delete(`/api/user/${user._id}`);
-      logout(); // ✅ Déconnecte automatiquement
+      logout();
       alert("Compte supprimé avec succès.");
       navigate("/register");
     } catch (error: any) {
@@ -41,6 +51,11 @@ const Profile = () => {
   };
 
   if (!user) return null;
+
+  // 🧩 Filtrage : admin voit tout, sinon que les liens sans restriction
+  const visibleLinks = dashboardLinks.filter(
+    (link) => !link.role || link.role === user.role
+  );
 
   return (
     <PageWrapper>
@@ -67,7 +82,6 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Infos utilisateur */}
           <h2 className="text-2xl font-semibold text-yellow-400">
             {user.name || "Utilisateur"}
           </h2>
@@ -76,7 +90,7 @@ const Profile = () => {
             Compte créé via {user.provider || "inscription classique"}
           </p>
 
-          {/* Boutons actions */}
+          {/* Actions principales */}
           <div className="flex flex-col gap-3 mt-8">
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -98,7 +112,32 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Footer */}
+        {/* Section Tableau de bord (visible pour tous) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="w-full max-w-md mt-10 overflow-hidden bg-gray-900 border border-gray-800 shadow-lg rounded-2xl"
+        >
+          <h3 className="px-4 py-3 text-sm font-semibold text-gray-400 uppercase">
+            ⚙️ Tableau de bord
+          </h3>
+
+          <ul className="divide-y divide-gray-800">
+            {visibleLinks.map((link) => (
+              <li key={link.path}>
+                <button
+                  onClick={() => navigate(link.path)}
+                  className="flex items-center justify-between w-full px-4 py-4 text-left transition-colors hover:bg-gray-800"
+                >
+                  <span className="text-gray-200">{link.label}</span>
+                  <ChevronRight size={18} className="text-gray-500" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+
         <p className="mt-10 text-sm text-center text-gray-500">
           Gère ton profil et tes informations personnelles.
         </p>

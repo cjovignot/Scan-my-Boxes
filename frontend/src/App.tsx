@@ -7,7 +7,8 @@ import Examples from "./pages/Examples";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
+import AdminUsers from "./pages/Admin/Users";
+import Settings from "./pages/Settings";
 import Storages from "./pages/Storages";
 import Boxes from "./pages/Boxes";
 import ScanPage from "./pages/ScanPage";
@@ -60,8 +61,9 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/storages" element={<Storages />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/boxes" element={<Boxes />} />
             <Route path="/boxes/new" element={<BoxCreate />} />
             <Route path="/storages/new" element={<StorageCreate />} />
