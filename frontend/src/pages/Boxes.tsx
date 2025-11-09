@@ -97,13 +97,20 @@ const Boxes = () => {
     const ro = new ResizeObserver(() => updateContentOffset());
     if (headerRef.current) ro.observe(headerRef.current);
     window.addEventListener("resize", updateContentOffset);
-    const onScroll = () => setScrolled(window.scrollY > 6);
-    window.addEventListener("scroll", onScroll);
+
+    // --- Ajout : écoute du scroll sur le container, pas sur window ---
+    const content = contentRef.current;
+    const onScroll = () => {
+      if (content) {
+        setScrolled(content.scrollTop > 0);
+      }
+    };
+    content?.addEventListener("scroll", onScroll);
 
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", updateContentOffset);
-      window.removeEventListener("scroll", onScroll);
+      content?.removeEventListener("scroll", onScroll);
     };
   }, []);
 
@@ -119,17 +126,13 @@ const Boxes = () => {
               : "bg-gray-950 border-gray-800"
           }`}
         >
-          <h1 className="mb-4 text-3xl font-bold text-center text-yellow-400">
-            📦 Mes boîtes
-          </h1>
-
           <div className="flex gap-3">
             <input
               type="text"
               placeholder="Rechercher par objet..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded-lg text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
+              className="w-full px-4 py-1 text-white bg-gray-800 border border-gray-700 rounded-lg text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
             />
             <button
               className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-black transition bg-yellow-400 rounded-lg hover:bg-yellow-500"

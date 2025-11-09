@@ -224,17 +224,13 @@ const Storages = () => {
               : "bg-gray-950 border-gray-800"
           }`}
         >
-          <h1 className="mb-4 text-3xl font-bold text-center text-yellow-400">
-            Mes entrepôts
-          </h1>
-
           <div className="flex gap-3">
             <input
               type="text"
               placeholder="Rechercher par nom..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 text-white bg-gray-800 border border-gray-700 rounded-lg text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
+              className="w-full px-4 py-1 text-white bg-gray-800 border border-gray-700 rounded-lg text-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
               aria-label="Rechercher des entrepôts"
             />
             <button
