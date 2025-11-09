@@ -75,7 +75,7 @@ const UserForm = () => {
   const data = mode === "signup" ? signupMutation.data : loginMutation.data;
 
   return (
-    <div className="max-w-md p-6 mx-auto text-white bg-gray-900 shadow-lg rounded-2xl">
+    <div className="max-w-md p-6 mx-auto text-white shadow-lg bg-gray-950 rounded-2xl">
       <h2 className="mb-4 text-lg font-semibold text-yellow-400">
         {mode === "signup" ? "Créer un compte" : "Se connecter"}
       </h2>

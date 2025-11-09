@@ -95,8 +95,8 @@ export const EditUserModal = ({
     <>
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-        <div className="w-full max-w-md p-6 text-white bg-gray-900 shadow-lg rounded-xl">
+      <div className="fixed inset-0 flex items-center justify-center z-999 bg-black/60">
+        <div className="w-full max-w-md p-6 text-white shadow-lg bg-gray-950 rounded-xl">
           <h2 className="mb-4 text-lg font-semibold text-yellow-400">
             Modifier l’utilisateur
           </h2>

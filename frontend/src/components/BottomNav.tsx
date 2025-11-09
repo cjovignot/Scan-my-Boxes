@@ -82,8 +82,8 @@ const BottomNav = () => {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 shadow-lg md:hidden">
-      <div className="relative flex items-center justify-between py-3">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800 shadow-lg bg-gray-950 md:hidden">
+      <div className="relative flex items-center justify-between gap-10 py-3">
         {/* Bloc gauche */}
         <div className="flex flex-1 justify-evenly">
           {navItemsLeft.map((item) => (

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
-import { ArrowLeft, Save, Plus, Trash, Camera } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Plus,
+  Trash,
+  Camera,
+  ChevronDown,
+} from "lucide-react";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
 
@@ -149,14 +156,12 @@ const BoxCreate = () => {
           >
             <ArrowLeft size={20} /> Retour
           </button>
-          <h1 className="text-3xl font-bold text-yellow-400">
-            Créer une boîte
-          </h1>
+          <h1 className="text-xl font-bold text-yellow-400">Créer une boîte</h1>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col max-w-2xl gap-4 p-6 mx-auto bg-gray-800 border border-gray-700 rounded-xl"
+          className="flex flex-col max-w-2xl gap-2 p-4 mx-auto bg-gray-800 border border-gray-700 rounded-xl"
         >
           {/* Champs de base */}
           <input
@@ -165,36 +170,41 @@ const BoxCreate = () => {
             placeholder="Destination (ex: Salon)"
             value={form.destination}
             onChange={handleChange}
-            className="px-3 py-2 bg-gray-900 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
+            className="w-full px-3 py-2 pr-10 text-sm text-white transition-colors border border-gray-700 rounded-lg appearance-none bg-gray-950 focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
           />
 
-          <select
-            name="storageId"
-            value={form.storageId}
-            onChange={handleChange}
-            className="px-3 py-2 bg-gray-900 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
-            required
-          >
-            <option value="">Sélectionnez un entrepôt</option>
-            {loadingStorages ? (
-              <option disabled>Chargement...</option>
-            ) : error ? (
-              <option disabled>Erreur de chargement</option>
-            ) : (
-              storages?.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.name}
-                </option>
-              ))
-            )}
-          </select>
+          <div className="relative flex-3/5">
+            <select
+              name="storageId"
+              value={form.storageId}
+              onChange={handleChange}
+              className="w-full px-3 py-2 pr-10 text-sm text-white transition-colors border border-gray-700 rounded-lg appearance-none bg-gray-950 focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
+              required
+            >
+              <option value="">Sélectionnez un entrepôt</option>
+              {loadingStorages ? (
+                <option disabled>Chargement...</option>
+              ) : error ? (
+                <option disabled>Erreur de chargement</option>
+              ) : (
+                storages?.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name}
+                  </option>
+                ))
+              )}
+            </select>
+
+            <ChevronDown
+              size={16}
+              className="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-1/2"
+            />
+          </div>
 
           {/* --- Contenu dynamique --- */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-semibold text-yellow-400">
-                Contenu de la boîte
-              </h2>
+              <h2 className="font-semibold text-yellow-400 text-md">Contenu</h2>
               <button
                 type="button"
                 onClick={handleAddItem}
@@ -215,7 +225,7 @@ const BoxCreate = () => {
                 key={index}
                 className="flex flex-col gap-2 p-3 mt-2 bg-gray-900 border border-gray-700 rounded-lg"
               >
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
                     placeholder="Nom de l’objet"
@@ -223,9 +233,10 @@ const BoxCreate = () => {
                     onChange={(e) =>
                       handleItemChange(index, "name", e.target.value)
                     }
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
+                    className="flex-1 w-3/4 px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg focus:ring-1 focus:ring-yellow-400"
                     required
                   />
+
                   <input
                     type="number"
                     placeholder="Quantité"
@@ -238,21 +249,14 @@ const BoxCreate = () => {
                         Number(e.target.value)
                       )
                     }
-                    className="w-24 px-3 py-2 bg-gray-800 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
+                    className="w-1/4 px-3 py-1 text-center bg-gray-800 border border-gray-700 rounded-lg focus:ring-1 focus:ring-yellow-400"
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(index)}
-                    className="p-2 text-red-500 hover:text-red-400"
-                  >
-                    <Trash size={18} />
-                  </button>
                 </div>
 
                 {/* Upload d’image */}
                 <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700 rounded cursor-pointer hover:bg-gray-700">
+                  <label className="flex items-center justify-center w-full gap-2 p-2 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:bg-gray-700">
                     <Camera size={16} />
                     <span className="text-sm">
                       {item.picture ? "Changer la photo" : "Prendre une photo"}
@@ -283,6 +287,15 @@ const BoxCreate = () => {
                     />
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleRemoveItem(index)}
+                  className="flex-shrink-0 p-2 text-sm text-white bg-red-900 rounded-lg hover:text-red-400"
+                >
+                  {/* <Trash size={18} /> */}
+                  Supprimer
+                </button>
               </div>
             ))}
           </div>
@@ -292,26 +305,26 @@ const BoxCreate = () => {
             <input
               type="number"
               name="width"
-              placeholder="Largeur (cm)"
+              placeholder="l (cm)"
               value={form.width}
               onChange={handleChange}
-              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
+              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
             />
             <input
               type="number"
               name="height"
-              placeholder="Hauteur (cm)"
+              placeholder="L (cm)"
               value={form.height}
               onChange={handleChange}
-              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
+              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
             />
             <input
               type="number"
               name="depth"
-              placeholder="Profondeur (cm)"
+              placeholder="h (cm)"
               value={form.depth}
               onChange={handleChange}
-              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded focus:ring-1 focus:ring-yellow-400"
+              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
             />
           </div>
 
