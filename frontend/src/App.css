@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   overscroll-behavior: none;
   height: 100%;
   overflow: hidden;
@@ -7,6 +8,19 @@ html, body {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Masquer la scrollbar mais garder le scroll fonctionnel */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+body {
+  -ms-overflow-style: none; /* pour IE et Edge */
+  scrollbar-width: none; /* pour Firefox */
 }
 
 /* #root {

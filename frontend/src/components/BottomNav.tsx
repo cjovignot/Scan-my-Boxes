@@ -1,6 +1,14 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, User, ScanQrCode, KeyRound, Shield, Boxes } from "lucide-react";
+import {
+  Home,
+  User,
+  ScanQrCode,
+  KeyRound,
+  Shield,
+  Boxes,
+  Box,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 const BottomNav = () => {
@@ -9,8 +17,21 @@ const BottomNav = () => {
   const handleFabClick = () => alert("🚀 Action rapide !");
 
   const navItemsLeft = [
-    { to: "/", icon: <Home size={22} strokeWidth={0.75} />, label: "Accueil" },
-    { to: "/storages", icon: <Boxes size={22} strokeWidth={0.75} />, label: "Entrepôts" },
+    {
+      to: "/",
+      icon: <Home size={22} strokeWidth={0.75} />,
+      label: "Accueil",
+    },
+    {
+      to: "/boxes",
+      icon: <Box size={22} strokeWidth={0.75} />,
+      label: "Boîtes",
+    },
+    {
+      to: "/storages",
+      icon: <Boxes size={22} strokeWidth={0.75} />,
+      label: "Entrepôts",
+    },
   ];
 
   let navItemsRight = [];
@@ -59,7 +80,6 @@ const BottomNav = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 shadow-lg md:hidden">
       <div className="relative flex items-center justify-between py-3">
-
         {/* Bloc gauche */}
         <div className="flex flex-1 justify-evenly">
           {navItemsLeft.map((item) => (
@@ -112,7 +132,6 @@ const BottomNav = () => {
             </NavLink>
           ))}
         </div>
-
       </div>
     </nav>
   );

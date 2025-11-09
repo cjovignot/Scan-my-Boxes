@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import Storages from "./pages/Storages";
+import Boxes from "./pages/Boxes";
 import AuthSuccess from "./pages/AuthSuccess";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { useEffect } from "react";
@@ -58,6 +59,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/storages" element={<Storages />} />
+            <Route path="/boxes" element={<Boxes />} />
             <Route path="/auth/success" element={<AuthSuccess />} />
           </Route>
         </Routes>
