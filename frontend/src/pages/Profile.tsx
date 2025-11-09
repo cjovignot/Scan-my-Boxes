@@ -14,6 +14,7 @@ interface DashboardLink {
 
 const dashboardLinks: DashboardLink[] = [
   { label: "👥 Utilisateurs", path: "/admin/users", role: "admin" },
+  { label: "👤 Mon compte", path: "/userAccount" },
   // { label: "📦 Entrepôts", path: "/admin/storages", role: "admin" },
   // { label: "📊 Statistiques", path: "/admin/stats", role: "admin" },
   { label: "⚙️ Paramètres", path: "/settings" }, // 👈 accessible à tous
