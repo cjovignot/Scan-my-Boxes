@@ -231,8 +231,8 @@ const BoxDetails = () => {
             ref={printRef}
             className="flex items-center justify-between bg-white text-black p-3 rounded-md border border-gray-300 mx-auto"
             style={{
-              width: "12cm",
-              height: "6cm",
+              width: "6cm",
+              height: "12cm",
               fontFamily: "Arial, sans-serif",
             }}
           >
