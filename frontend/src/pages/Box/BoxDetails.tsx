@@ -193,45 +193,80 @@ const BoxDetails = () => {
 {showModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
     <div className="relative max-w-full max-h-[90vh] overflow-auto p-6 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl">
-      {/* 🏷️ Étiquette à imprimer */}
+      
+      {/* 🏷️ Wrapper de mise à l’échelle */}
       <div
-        ref={printRef}
-        className="flex items-center justify-between bg-white text-black p-3 rounded-md border border-gray-300 mx-auto"
+        className="flex justify-center items-center"
         style={{
-          width: "12cm",
-          height: "6cm",
-          fontFamily: "Arial, sans-serif",
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
         }}
       >
-        {/* 🧩 QR Code à gauche */}
-        {box.qrcodeURL && (
-          <img
-            src={box.qrcodeURL}
-            alt="QR Code"
-            className="object-contain w-[5cm] h-[5cm] border border-gray-400 rounded-md"
-          />
-        )}
+        <div
+          className="origin-top scale-[var(--scale)]"
+          style={{
+            "--scale": 1,
+            transformOrigin: "top center",
+          }}
+          ref={(el) => {
+            if (el) {
+              // 🧠 Ajuste dynamiquement le zoom selon la taille de la fenêtre
+              const parent = el.parentElement;
+              const maxWidth = parent.offsetWidth;
+              const maxHeight = parent.offsetHeight;
+              const labelWidth = 12 * 37.8; // 1 cm ≈ 37.8 px
+              const labelHeight = 6 * 37.8;
+              const scale = Math.min(
+                maxWidth / labelWidth,
+                maxHeight / labelHeight,
+                1
+              );
+              el.style.setProperty("--scale", scale);
+            }
+          }}
+        >
+          {/* 🏷️ Étiquette à imprimer */}
+          <div
+            ref={printRef}
+            className="flex items-center justify-between bg-white text-black p-3 rounded-md border border-gray-300 mx-auto"
+            style={{
+              width: "12cm",
+              height: "6cm",
+              fontFamily: "Arial, sans-serif",
+            }}
+          >
+            {/* 🧩 QR Code */}
+            {box.qrcodeURL && (
+              <img
+                src={box.qrcodeURL}
+                alt="QR Code"
+                className="object-contain w-[5cm] h-[5cm] border border-gray-400 rounded-md"
+              />
+            )}
 
-        {/* 📝 Infos à droite */}
-        <div className="flex flex-col justify-center flex-1 ml-4">
-          <h2
-            className="font-bold text-gray-900"
-            style={{ fontSize: "26pt", lineHeight: "1.2" }}
-          >
-            {box.number}
-          </h2>
-          <p
-            className="mt-3 text-gray-700"
-            style={{ fontSize: "14pt", fontWeight: 500 }}
-          >
-            Destination :
-          </p>
-          <p
-            className="text-gray-800"
-            style={{ fontSize: "16pt", fontWeight: 600 }}
-          >
-            {box.destination}
-          </p>
+            {/* 📝 Infos */}
+            <div className="flex flex-col justify-center flex-1 ml-4">
+              <h2
+                className="font-bold text-gray-900"
+                style={{ fontSize: "26pt", lineHeight: "1.2" }}
+              >
+                {box.number}
+              </h2>
+              <p
+                className="mt-3 text-gray-700"
+                style={{ fontSize: "14pt", fontWeight: 500 }}
+              >
+                Destination :
+              </p>
+              <p
+                className="text-gray-800"
+                style={{ fontSize: "16pt", fontWeight: 600 }}
+              >
+                {box.destination}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
