@@ -191,13 +191,15 @@ const BoxDetails = () => {
 
 {/* 🪟 Modal d’impression */}
 {showModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-    <div className="p-6 bg-gray-900 border border-gray-800 rounded-2xl">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+    <div className="relative max-w-full max-h-[90vh] overflow-auto p-6 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl">
       {/* 🏷️ Étiquette à imprimer */}
       <div
         ref={printRef}
-        className="flex items-center justify-between w-[12cm] h-[6cm] bg-white text-black p-3 rounded-md border border-gray-300"
+        className="flex items-center justify-between bg-white text-black p-3 rounded-md border border-gray-300 mx-auto"
         style={{
+          width: "12cm",
+          height: "6cm",
           fontFamily: "Arial, sans-serif",
         }}
       >
