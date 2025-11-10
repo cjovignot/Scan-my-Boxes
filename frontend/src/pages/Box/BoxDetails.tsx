@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/useApi";
 
@@ -13,7 +13,7 @@ interface ContentItem {
 
 interface Box {
   _id: string;
-  number: string; // remplacer "name"
+  number: string;
   destination: string;
   storageId: string;
   content: ContentItem[];
@@ -30,6 +30,7 @@ interface Box {
 const BoxDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const printRef = useRef<HTMLDivElement>(null);
 
   const {
     data: box,
@@ -38,9 +39,45 @@ const BoxDetails = () => {
     refetch,
   } = useApi<Box>(id ? `/api/boxes/${id}` : undefined);
 
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
     if (id) refetch();
   }, [id]);
+
+  // 🖨️ Fonction d’impression
+  const handlePrint = () => {
+    if (!printRef.current) return;
+
+    const printContents = printRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=600,height=800");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Impression QR Box</title>
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 20px; }
+            h2 { color: #444; margin-bottom: 8px; }
+            p { color: #666; margin: 4px 0; }
+            img { width: 200px; height: 200px; margin-top: 10px; }
+          </style>
+        </head>
+        <body>
+          ${printContents}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = () => window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+  };
 
   if (loading) {
     return (
@@ -89,7 +126,8 @@ const BoxDetails = () => {
           </h1>
         </motion.div>
 
-        <div className="w-full p-4 mx-auto bg-gray-900 border border-gray-800 rounded-2xl">
+        {/* 🗃️ Informations */}
+        <div className="relative w-full p-4 mx-auto bg-gray-900 border border-gray-800 rounded-2xl">
           <p className="mb-3 text-sm text-gray-300">
             Entrepôt :{" "}
             <span className="font-medium text-yellow-400">{box.storageId}</span>
@@ -110,10 +148,25 @@ const BoxDetails = () => {
             </span>
           </p>
 
+          {/* ✅ QR Code affiché en grand */}
+          {box.qrcodeURL && (
+            <div className="flex flex-col items-center justify-center mt-6">
+              <img
+                src={box.qrcodeURL}
+                alt="QR Code"
+                className="w-48 h-48 object-contain border border-gray-700 rounded-lg bg-gray-800/60 cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => setShowModal(true)}
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Cliquez pour imprimer le QR code
+              </p>
+            </div>
+          )}
+
+          {/* 📦 Contenu */}
           <div className="mt-6 mb-4 font-medium text-yellow-400">
             Contenu de la boîte
           </div>
-          {/* Contenu de la boîte */}
           {box.content.length > 0 ? (
             <ul className="space-y-2">
               {box.content.map((item, idx) => (
@@ -135,6 +188,43 @@ const BoxDetails = () => {
           )}
         </div>
       </div>
+
+      {/* 🪟 Modal d’impression */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="p-6 bg-gray-900 border border-gray-800 rounded-2xl">
+            <div ref={printRef} className="text-center text-white">
+              <h2 className="text-2xl font-semibold text-yellow-400">
+                Boîte {box.number}
+              </h2>
+              <p className="mt-1 text-gray-300">{box.destination}</p>
+              {box.qrcodeURL && (
+                <img
+                  src={box.qrcodeURL}
+                  alt="QR Code"
+                  className="w-52 h-52 mx-auto mt-4 border border-gray-700 rounded-lg bg-gray-800/50 p-2"
+                />
+              )}
+            </div>
+
+            <div className="flex justify-center gap-4 mt-6">
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-yellow-400 rounded-lg hover:bg-yellow-500"
+              >
+                <Printer size={18} />
+                Imprimer
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm text-gray-300 transition-colors border border-gray-700 rounded-lg hover:bg-gray-800"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
