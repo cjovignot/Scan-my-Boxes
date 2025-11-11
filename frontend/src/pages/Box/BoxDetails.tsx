@@ -98,7 +98,8 @@ const BoxDetails = () => {
   // 🖨️ Impression
   const handlePrint = () => {
     if (!labelImage) return;
-    const printWindow = window.open("", "_blank", "width=600,height=800");
+
+    const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
     printWindow.document.write(`
@@ -106,14 +107,36 @@ const BoxDetails = () => {
         <head>
           <title>Étiquette ${box?.number}</title>
           <style>
-            body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-            img { width: 10cm; height: 4cm; object-fit: contain; }
+            @page {
+              size: 10cm 4cm;
+              margin: 0;
+            }
+            html, body {
+              width: 10cm;
+              height: 4cm;
+              margin: 0;
+              padding: 0;
+              background: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            img {
+              width: 10cm;
+              height: 4cm;
+              object-fit: contain;
+              page-break-before: avoid;
+              page-break-after: avoid;
+            }
           </style>
         </head>
         <body>
           <img src="${labelImage}" alt="Étiquette" />
           <script>
-            window.onload = () => { window.print(); window.onafterprint = () => window.close(); };
+            window.onload = () => {
+              window.print();
+              window.onafterprint = () => window.close();
+            };
           </script>
         </body>
       </html>
@@ -121,7 +144,6 @@ const BoxDetails = () => {
 
     printWindow.document.close();
   };
-
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen text-gray-400 bg-black">
