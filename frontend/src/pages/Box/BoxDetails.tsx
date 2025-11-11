@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Printer } from "lucide-react";
 import { motion } from "framer-motion";
-import { toPng } from "html-to-image";
 import { useApi } from "../../hooks/useApi";
+import * as htmlToImage from "html-to-image";
 
 interface ContentItem {
   _id: string;
@@ -36,7 +36,7 @@ interface Storage {
 const BoxDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const printRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLDivElement>(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -48,12 +48,13 @@ const BoxDetails = () => {
   const [storageName, setStorageName] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
   const [labelImage, setLabelImage] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (id) refetch();
   }, [id]);
 
-  // 🏗️ Récupère le nom de l'entrepôt correspondant
+  // 🏗️ Récupère le nom de l'entrepôt
   useEffect(() => {
     const fetchStorageName = async () => {
       if (!box?.storageId || !user?._id) return;
@@ -71,62 +72,48 @@ const BoxDetails = () => {
     fetchStorageName();
   }, [box?.storageId, API_URL, user]);
 
-  // 🖼️ Génère automatiquement une image de l’étiquette
+  // 🧩 Génération automatique de l’image de l’étiquette
   useEffect(() => {
-    if (!box || !printRef.current) return;
+    if (!box || !labelRef.current) return;
 
-    const generateImage = async () => {
+    const generateLabel = async () => {
       try {
-        const dataUrl = await toPng(printRef.current!, {
-          cacheBust: true,
+        setGenerating(true);
+        const dataUrl = await htmlToImage.toPng(labelRef.current, {
           quality: 1,
-          width: 600,
-          height: 240,
+          backgroundColor: "#fff",
+          pixelRatio: 2,
         });
         setLabelImage(dataUrl);
-      } catch (error) {
-        console.error("Erreur génération image étiquette :", error);
+      } catch (err) {
+        console.error("❌ Erreur génération étiquette :", err);
+      } finally {
+        setGenerating(false);
       }
     };
 
-    setTimeout(generateImage, 500);
+    generateLabel();
   }, [box]);
 
   // 🖨️ Impression
   const handlePrint = () => {
     if (!labelImage) return;
-
     const printWindow = window.open("", "_blank", "width=600,height=800");
     if (!printWindow) return;
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>Impression Étiquette</title>
+          <title>Étiquette ${box?.number}</title>
           <style>
-            body { 
-              font-family: sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              background: white;
-              margin: 0;
-            }
-            img {
-              width: 10cm;
-              height: 4cm;
-              object-fit: contain;
-            }
+            body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            img { width: 10cm; height: 4cm; object-fit: contain; }
           </style>
         </head>
         <body>
           <img src="${labelImage}" alt="Étiquette" />
           <script>
-            window.onload = function() {
-              window.print();
-              window.onafterprint = () => window.close();
-            };
+            window.onload = () => { window.print(); window.onafterprint = () => window.close(); };
           </script>
         </body>
       </html>
@@ -135,15 +122,14 @@ const BoxDetails = () => {
     printWindow.document.close();
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="flex items-center justify-center h-screen text-gray-400 bg-black">
         ⏳ Chargement des détails...
       </div>
     );
-  }
 
-  if (error || !box) {
+  if (error || !box)
     return (
       <div className="flex flex-col items-center justify-center h-screen text-center text-gray-300 bg-black">
         <p className="mb-3 text-red-400">
@@ -157,7 +143,6 @@ const BoxDetails = () => {
         </button>
       </div>
     );
-  }
 
   return (
     <>
@@ -225,7 +210,6 @@ const BoxDetails = () => {
           <div className="mt-6 mb-4 font-medium text-yellow-400">
             Contenu de la boîte
           </div>
-
           {box.content.length > 0 ? (
             <ul className="space-y-2">
               {box.content.map((item, idx) => (
@@ -240,12 +224,10 @@ const BoxDetails = () => {
                       className="object-cover w-20 h-20 border border-gray-700 rounded-lg"
                     />
                   )}
-                  <div className="flex flex-col justify-center">
-                    <span className="font-medium">{item.name}</span>
-                    {item.quantity && (
-                      <span className="text-gray-400">x{item.quantity}</span>
-                    )}
-                  </div>
+                  <span className="font-medium">{item.name}</span>
+                  {item.quantity && (
+                    <span className="text-gray-400">x{item.quantity}</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -261,53 +243,23 @@ const BoxDetails = () => {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
           <div className="relative max-w-full max-h-[90vh] overflow-auto p-6 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl">
-            {labelImage ? (
+            {generating ? (
+              <p className="text-gray-400">⚙️ Génération de l’étiquette...</p>
+            ) : labelImage ? (
               <img
                 src={labelImage}
-                alt="Étiquette"
-                className="max-w-full h-auto rounded-lg border border-gray-700 shadow-lg"
+                alt="Étiquette générée"
+                className="max-w-full h-auto mx-auto border border-gray-700 rounded-md"
               />
             ) : (
-              <p className="text-gray-400">Génération de l’étiquette...</p>
+              <p className="text-gray-400">❌ Échec de génération</p>
             )}
-
-            {/* 🏷️ Étiquette cachée utilisée pour capture */}
-            <div
-              ref={printRef}
-              className="hidden flex items-center justify-between p-3 mx-auto text-black bg-white border border-gray-300 rounded-md"
-              style={{
-                width: "10cm",
-                height: "4cm",
-                fontFamily: "Arial, sans-serif",
-              }}
-            >
-              {box.qrcodeURL && (
-                <img
-                  src={box.qrcodeURL}
-                  alt="QR Code"
-                  className="object-contain w-[3cm] h-[3cm] border border-gray-400 rounded-md"
-                />
-              )}
-              <div className="flex flex-col justify-center flex-1 ml-4">
-                <h2
-                  className="font-bold text-gray-900"
-                  style={{ fontSize: "26pt", lineHeight: "1.2" }}
-                >
-                  {box.number}
-                </h2>
-                <p
-                  className="text-gray-800"
-                  style={{ fontSize: "16pt", fontWeight: 600 }}
-                >
-                  {box.destination}
-                </p>
-              </div>
-            </div>
 
             <div className="flex justify-center gap-4 mt-6">
               <button
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-yellow-400 rounded-lg hover:bg-yellow-500"
+                disabled={!labelImage}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-yellow-400 rounded-lg hover:bg-yellow-500 disabled:opacity-50"
               >
                 <Printer size={18} />
                 Imprimer
@@ -322,6 +274,44 @@ const BoxDetails = () => {
           </div>
         </div>
       )}
+
+      {/* 🏷️ Étiquette invisible pour génération */}
+      <div
+        ref={labelRef}
+        style={{
+          width: "10cm",
+          height: "4cm",
+          padding: "0.5cm",
+          background: "#fff",
+          color: "#000",
+          fontFamily: "Arial, sans-serif",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+        className="hidden"
+      >
+        {box.qrcodeURL && (
+          <img
+            src={box.qrcodeURL}
+            alt="QR"
+            style={{
+              width: "3cm",
+              height: "3cm",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+            }}
+          />
+        )}
+        <div style={{ flex: 1, marginLeft: "1cm" }}>
+          <h2 style={{ fontSize: "26pt", fontWeight: "bold" }}>
+            {box.number}
+          </h2>
+          <p style={{ fontSize: "16pt", fontWeight: 600 }}>
+            {box.destination}
+          </p>
+        </div>
+      </div>
     </>
   );
 };
