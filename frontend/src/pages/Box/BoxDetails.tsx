@@ -116,10 +116,10 @@ const BoxDetails = () => {
               height: 4cm;
               margin: 0;
               padding: 0;
-              background: white;
               display: flex;
               align-items: center;
               justify-content: center;
+              background: white;
             }
             img {
               width: 10cm;
@@ -133,10 +133,7 @@ const BoxDetails = () => {
         <body>
           <img src="${labelImage}" alt="Étiquette" />
           <script>
-            window.onload = () => {
-              window.print();
-              window.onafterprint = () => window.close();
-            };
+            window.onload = () => { window.print(); window.onafterprint = () => window.close(); };
           </script>
         </body>
       </html>
@@ -144,6 +141,7 @@ const BoxDetails = () => {
 
     printWindow.document.close();
   };
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen text-gray-400 bg-black">
@@ -213,21 +211,6 @@ const BoxDetails = () => {
             </span>
           </p>
 
-          {/* ✅ QR Code */}
-          {box.qrcodeURL && (
-            <div className="flex flex-col items-center justify-center mt-6">
-              <img
-                src={box.qrcodeURL}
-                alt="QR Code"
-                className="object-contain w-48 h-48 transition-transform border border-gray-700 rounded-lg cursor-pointer bg-gray-800/60 hover:scale-105"
-                onClick={() => setShowModal(true)}
-              />
-              <p className="mt-2 text-xs text-gray-500">
-                Cliquez pour imprimer le QR code
-              </p>
-            </div>
-          )}
-
           {/* 📦 Contenu */}
           <div className="mt-6 mb-4 font-medium text-yellow-400">
             Contenu de la boîte
@@ -259,6 +242,21 @@ const BoxDetails = () => {
             </p>
           )}
         </div>
+
+        {/* ✅ QR Code */}
+        {box.qrcodeURL && (
+          <div className="flex flex-col items-center justify-center mt-6">
+            <img
+              src={box.qrcodeURL}
+              alt="QR Code"
+              className="object-contain w-48 h-48 transition-transform border border-gray-700 rounded-lg cursor-pointer bg-gray-800/60 hover:scale-105"
+              onClick={() => setShowModal(true)}
+            />
+            <p className="mt-2 text-xs text-gray-500">
+              Cliquez pour imprimer le QR code
+            </p>
+          </div>
+        )}
       </div>
 
       {/* 🪟 Modal d’impression */}
@@ -297,61 +295,60 @@ const BoxDetails = () => {
         </div>
       )}
 
-{/* 🏷️ Étiquette invisible pour génération */}
-<div
-  ref={printRef}
-  className="absolute"
-  style={{
-    top: "-9999px",
-    left: "-9999px",
-    opacity: 0,
-    pointerEvents: "none",
-    width: "10cm",
-    height: "4cm",
-    fontFamily: "Arial, sans-serif",
-    background: "white",
-    border: "1px solid #ccc",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0.5cm",
-  }}
->
-  {box.qrcodeURL && (
-    <img
-      src={box.qrcodeURL}
-      alt="QR Code"
-      style={{
-        width: "3cm",
-        height: "3cm",
-        border: "1px solid #999",
-        borderRadius: "4px",
-        objectFit: "contain",
-      }}
-    />
-  )}
-  <div style={{ flex: 1, marginLeft: "0.5cm" }}>
-    <h2
-      style={{
-        fontSize: "26pt",
-        fontWeight: "bold",
-        color: "#222",
-        lineHeight: 1.2,
-      }}
-    >
-      {box.number}
-    </h2>
-    <p
-      style={{
-        fontSize: "16pt",
-        fontWeight: 600,
-        color: "#333",
-      }}
-    >
-      {box.destination}
-    </p>
-  </div>
-</div>
+      {/* 🏷️ Étiquette fantôme invisible pour génération */}
+      <div
+        ref={labelRef}
+        style={{
+          position: "absolute",
+          top: "-9999px",
+          left: "-9999px",
+          opacity: 0,
+          pointerEvents: "none",
+          width: "10cm",
+          height: "4cm",
+          padding: "0.5cm",
+          background: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
+        {box.qrcodeURL && (
+          <img
+            src={box.qrcodeURL}
+            alt="QR Code"
+            style={{
+              width: "3cm",
+              height: "3cm",
+              border: "1px solid #999",
+              borderRadius: "4px",
+              objectFit: "contain",
+            }}
+          />
+        )}
+        <div style={{ flex: 1, marginLeft: "0.5cm" }}>
+          <h2
+            style={{
+              fontSize: "26pt",
+              fontWeight: "bold",
+              color: "#222",
+              lineHeight: 1.2,
+            }}
+          >
+            {box.number}
+          </h2>
+          <p
+            style={{
+              fontSize: "16pt",
+              fontWeight: 600,
+              color: "#333",
+            }}
+          >
+            {box.destination}
+          </p>
+        </div>
+      </div>
     </>
   );
 };
