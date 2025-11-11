@@ -301,7 +301,7 @@ const BoxDetails = () => {
           alignItems: "center",
           justifyContent: "space-between",
         }}
-        className="absolute -z-9999"
+        className="hidden"
       >
         {box.qrcodeURL && (
           <img
