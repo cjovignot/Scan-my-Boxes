@@ -72,26 +72,13 @@ const BoxDetails = () => {
     fetchStorageName();
   }, [box?.storageId, API_URL, user]);
 
-  // 🧩 Génération automatique de l’image de l’étiquette après chargement des images
+  // 🧩 Génération automatique de l’image de l’étiquette
   useEffect(() => {
     if (!box || !labelRef.current) return;
 
     const generateLabel = async () => {
       try {
         setGenerating(true);
-
-        // Attendre que toutes les images dans le label soient chargées
-        const images = Array.from(labelRef.current.querySelectorAll("img"));
-        await Promise.all(
-          images.map(
-            (img) =>
-              new Promise<void>((resolve) => {
-                if (img.complete) resolve();
-                else img.onload = () => resolve();
-              })
-          )
-        );
-
         const dataUrl = await htmlToImage.toPng(labelRef.current, {
           quality: 1,
           backgroundColor: "#fff",
@@ -111,8 +98,7 @@ const BoxDetails = () => {
   // 🖨️ Impression
   const handlePrint = () => {
     if (!labelImage) return;
-
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("", "_blank", "width=600,height=800");
     if (!printWindow) return;
 
     printWindow.document.write(`
@@ -120,27 +106,8 @@ const BoxDetails = () => {
         <head>
           <title>Étiquette ${box?.number}</title>
           <style>
-            @page {
-              size: 10cm 4cm;
-              margin: 0;
-            }
-            html, body {
-              width: 10cm;
-              height: 4cm;
-              margin: 0;
-              padding: 0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background: white;
-            }
-            img {
-              width: 10cm;
-              height: 4cm;
-              object-fit: contain;
-              page-break-before: avoid;
-              page-break-after: avoid;
-            }
+            body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            img { width: 10cm; height: 4cm; object-fit: contain; }
           </style>
         </head>
         <body>
@@ -200,21 +167,6 @@ const BoxDetails = () => {
           </h1>
         </motion.div>
 
-        {/* ✅ QR Code cliquable en haut */}
-        {box.qrcodeURL && (
-          <div className="flex flex-col items-center justify-center mb-6">
-            <img
-              src={box.qrcodeURL}
-              alt="QR Code"
-              className="object-contain w-48 h-48 transition-transform border border-gray-700 rounded-lg cursor-pointer bg-gray-800/60 hover:scale-105"
-              onClick={() => setShowModal(true)}
-            />
-            <p className="mt-2 text-xs text-gray-500">
-              Cliquez pour générer et imprimer l’étiquette
-            </p>
-          </div>
-        )}
-
         {/* 🗃️ Informations */}
         <div className="relative w-full p-4 mx-auto bg-gray-900 border border-gray-800 rounded-2xl">
           <p className="mb-3 text-sm text-gray-300">
@@ -238,6 +190,21 @@ const BoxDetails = () => {
               {box.dimensions.depth} cm
             </span>
           </p>
+
+          {/* ✅ QR Code */}
+          {box.qrcodeURL && (
+            <div className="flex flex-col items-center justify-center mt-6">
+              <img
+                src={box.qrcodeURL}
+                alt="QR Code"
+                className="object-contain w-48 h-48 transition-transform border border-gray-700 rounded-lg cursor-pointer bg-gray-800/60 hover:scale-105"
+                onClick={() => setShowModal(true)}
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Cliquez pour imprimer le QR code
+              </p>
+            </div>
+          )}
 
           {/* 📦 Contenu */}
           <div className="mt-6 mb-4 font-medium text-yellow-400">
@@ -308,56 +275,39 @@ const BoxDetails = () => {
         </div>
       )}
 
-      {/* 🏷️ Étiquette fantôme invisible pour génération */}
+      {/* 🏷️ Étiquette invisible pour génération */}
       <div
         ref={labelRef}
         style={{
-          position: "absolute",
-          top: "-9999px",
-          left: "-9999px",
-          opacity: 0,
-          pointerEvents: "none",
           width: "10cm",
           height: "4cm",
           padding: "0.5cm",
-          background: "white",
+          background: "#fff",
+          color: "#000",
+          fontFamily: "Arial, sans-serif",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          fontFamily: "Arial, sans-serif",
         }}
+        className="hidden"
       >
         {box.qrcodeURL && (
           <img
             src={box.qrcodeURL}
-            alt="QR Code"
+            alt="QR"
             style={{
               width: "3cm",
               height: "3cm",
-              border: "1px solid #999",
-              borderRadius: "4px",
-              objectFit: "contain",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
             }}
           />
         )}
-        <div style={{ flex: 1, marginLeft: "0.5cm" }}>
-          <h2
-            style={{
-              fontSize: "26pt",
-              fontWeight: "bold",
-              color: "#222",
-              lineHeight: 1.2,
-            }}
-          >
+        <div style={{ flex: 1, marginLeft: "1cm" }}>
+          <h2 style={{ fontSize: "26pt", fontWeight: "bold" }}>
             {box.number}
           </h2>
-          <p
-            style={{
-              fontSize: "16pt",
-              fontWeight: 600,
-              color: "#333",
-            }}
-          >
+          <p style={{ fontSize: "16pt", fontWeight: 600 }}>
             {box.destination}
           </p>
         </div>
