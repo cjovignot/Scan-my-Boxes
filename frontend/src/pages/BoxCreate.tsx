@@ -264,7 +264,24 @@ const BoxCreate = () => {
 
                 {/* Upload d’image */}
                 <div className="flex items-center gap-2">
-                  <label className="flex items-center justify-center w-full gap-2 p-2 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:bg-gray-700">
+                  <div className="flex items-center justify-center overflow-hidden bg-gray-900 border border-gray-700 rounded-lg w-30 h-30">
+                    {item.uploading ? (
+                      <span className="text-xs text-yellow-400 animate-pulse">
+                        Envoi...
+                      </span>
+                    ) : item.picture ? (
+                      <img
+                        src={item.picture}
+                        alt="Aperçu"
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <span className="text-xs text-center text-gray-500">
+                        Aperçu
+                      </span>
+                    )}
+                  </div>
+                  <label className="flex flex-col items-center justify-center flex-1 gap-2 p-2 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:bg-gray-700">
                     <Camera size={16} />
                     <span className="text-sm">
                       {item.picture ? "Changer la photo" : "Prendre une photo"}
@@ -280,20 +297,6 @@ const BoxCreate = () => {
                       }}
                     />
                   </label>
-
-                  {item.uploading && (
-                    <span className="text-sm text-yellow-400 animate-pulse">
-                      Envoi...
-                    </span>
-                  )}
-
-                  {item.picture && !item.uploading && (
-                    <img
-                      src={item.picture}
-                      alt="Aperçu"
-                      className="object-cover w-16 h-16 border border-gray-600 rounded"
-                    />
-                  )}
                 </div>
 
                 <button

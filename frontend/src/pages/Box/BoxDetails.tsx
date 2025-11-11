@@ -202,9 +202,19 @@ const BoxDetails = () => {
               {box.content.map((item, idx) => (
                 <li
                   key={idx}
-                  className="flex justify-between px-3 py-2 text-sm text-gray-200 bg-gray-800 rounded-lg"
+                  className="flex items-start justify-start gap-3 px-3 py-2 text-sm text-gray-200 bg-gray-800 rounded-lg"
                 >
-                  <span>{item.name}</span>
+                  <div className="flex items-center gap-3">
+                    {item.picture && (
+                      <img
+                        src={item.picture}
+                        alt={item.name}
+                        className="object-cover w-20 h-20 border border-gray-700 rounded-lg"
+                      />
+                    )}
+                  </div>
+                  <span className="font-medium">{item.name}</span>
+
                   {item.quantity && (
                     <span className="text-gray-400">x{item.quantity}</span>
                   )}
@@ -229,10 +239,12 @@ const BoxDetails = () => {
             >
               <div
                 className="origin-top scale-[var(--scale)]"
-                style={{
-                  "--scale": 1,
-                  transformOrigin: "top center",
-                } as React.CSSProperties}
+                style={
+                  {
+                    "--scale": 1,
+                    transformOrigin: "top center",
+                  } as React.CSSProperties
+                }
                 ref={(el) => {
                   if (el) {
                     const parent = el.parentElement!;
