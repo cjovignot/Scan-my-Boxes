@@ -297,43 +297,61 @@ const BoxDetails = () => {
         </div>
       )}
 
-      {/* 🏷️ Étiquette invisible pour génération */}
-      <div
-        ref={labelRef}
-        style={{
-          width: "10cm",
-          height: "4cm",
-          padding: "0.5cm",
-          background: "#fff",
-          color: "#000",
-          fontFamily: "Arial, sans-serif",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-        className="hidden"
-      >
-        {box.qrcodeURL && (
-          <img
-            src={box.qrcodeURL}
-            alt="QR"
-            style={{
-              width: "3cm",
-              height: "3cm",
-              border: "1px solid #ccc",
-              borderRadius: "6px",
-            }}
-          />
-        )}
-        <div style={{ flex: 1, marginLeft: "1cm" }}>
-          <h2 style={{ fontSize: "26pt", fontWeight: "bold" }}>
-            {box.number}
-          </h2>
-          <p style={{ fontSize: "16pt", fontWeight: 600 }}>
-            {box.destination}
-          </p>
-        </div>
-      </div>
+{/* 🏷️ Étiquette invisible pour génération */}
+<div
+  ref={printRef}
+  className="absolute"
+  style={{
+    top: "-9999px",
+    left: "-9999px",
+    opacity: 0,
+    pointerEvents: "none",
+    width: "10cm",
+    height: "4cm",
+    fontFamily: "Arial, sans-serif",
+    background: "white",
+    border: "1px solid #ccc",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0.5cm",
+  }}
+>
+  {box.qrcodeURL && (
+    <img
+      src={box.qrcodeURL}
+      alt="QR Code"
+      style={{
+        width: "3cm",
+        height: "3cm",
+        border: "1px solid #999",
+        borderRadius: "4px",
+        objectFit: "contain",
+      }}
+    />
+  )}
+  <div style={{ flex: 1, marginLeft: "0.5cm" }}>
+    <h2
+      style={{
+        fontSize: "26pt",
+        fontWeight: "bold",
+        color: "#222",
+        lineHeight: 1.2,
+      }}
+    >
+      {box.number}
+    </h2>
+    <p
+      style={{
+        fontSize: "16pt",
+        fontWeight: 600,
+        color: "#333",
+      }}
+    >
+      {box.destination}
+    </p>
+  </div>
+</div>
     </>
   );
 };
