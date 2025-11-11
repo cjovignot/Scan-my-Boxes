@@ -36,17 +36,14 @@ interface Storage {
 const BoxDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-
   const printRef = useRef<HTMLDivElement>(null);
+
   const API_URL = import.meta.env.VITE_API_URL;
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const {
-    data: box,
-    loading,
-    error,
-    refetch,
-  } = useApi<Box>(id ? `/api/boxes/${id}` : undefined);
+  const { data: box, loading, error, refetch } = useApi<Box>(
+    id ? `/api/boxes/${id}` : undefined
+  );
 
   const [storageName, setStorageName] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
@@ -74,7 +71,7 @@ const BoxDetails = () => {
     fetchStorageName();
   }, [box?.storageId, API_URL, user]);
 
-  // 🖼️ Génère automatiquement une image de l’étiquette au chargement
+  // 🖼️ Génère automatiquement une image de l’étiquette
   useEffect(() => {
     if (!box || !printRef.current) return;
 
@@ -92,7 +89,6 @@ const BoxDetails = () => {
       }
     };
 
-    // Petit délai pour s’assurer que le DOM est prêt
     setTimeout(generateImage, 500);
   }, [box]);
 
@@ -224,6 +220,40 @@ const BoxDetails = () => {
               </p>
             </div>
           )}
+
+          {/* 📦 Contenu */}
+          <div className="mt-6 mb-4 font-medium text-yellow-400">
+            Contenu de la boîte
+          </div>
+
+          {box.content.length > 0 ? (
+            <ul className="space-y-2">
+              {box.content.map((item, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start justify-start gap-3 px-3 py-2 text-sm text-gray-200 bg-gray-800 rounded-lg"
+                >
+                  {item.picture && (
+                    <img
+                      src={item.picture}
+                      alt={item.name}
+                      className="object-cover w-20 h-20 border border-gray-700 rounded-lg"
+                    />
+                  )}
+                  <div className="flex flex-col justify-center">
+                    <span className="font-medium">{item.name}</span>
+                    {item.quantity && (
+                      <span className="text-gray-400">x{item.quantity}</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-400">
+              Aucun élément dans cette boîte.
+            </p>
+          )}
         </div>
       </div>
 
@@ -241,7 +271,7 @@ const BoxDetails = () => {
               <p className="text-gray-400">Génération de l’étiquette...</p>
             )}
 
-            {/* Étiquette cachée utilisée pour la capture */}
+            {/* 🏷️ Étiquette cachée utilisée pour capture */}
             <div
               ref={printRef}
               className="hidden flex items-center justify-between p-3 mx-auto text-black bg-white border border-gray-300 rounded-md"
@@ -258,7 +288,6 @@ const BoxDetails = () => {
                   className="object-contain w-[3cm] h-[3cm] border border-gray-400 rounded-md"
                 />
               )}
-
               <div className="flex flex-col justify-center flex-1 ml-4">
                 <h2
                   className="font-bold text-gray-900"
