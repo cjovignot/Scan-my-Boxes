@@ -116,22 +116,24 @@ const Boxes = () => {
   // 🔹 Filtrage + tri
   // =====================================
   const filteredBoxes = boxes
-    .filter((box) =>
-      box.content.some((item) =>
-        item.name.toLowerCase().includes(search.toLowerCase())
-      )
-    )
-    .sort((a, b) => {
-      if (sortMode === "destination") {
-        return ascending
-          ? a.destination.localeCompare(b.destination)
-          : b.destination.localeCompare(a.destination);
-      } else {
-        return ascending
-          ? a.content.length - b.content.length
-          : b.content.length - a.content.length;
-      }
-    });
+  .filter((box) =>
+    search === ""
+      ? true // si rien à chercher, on garde toutes les boîtes
+      : box.content.some((item) =>
+          item.name.toLowerCase().includes(search.toLowerCase())
+        )
+  )
+  .sort((a, b) => {
+    if (sortMode === "destination") {
+      return ascending
+        ? a.destination.localeCompare(b.destination)
+        : b.destination.localeCompare(a.destination);
+    } else {
+      return ascending
+        ? a.content.length - b.content.length
+        : b.content.length - a.content.length;
+    }
+  });
 
   // =====================================
   // 🔹 Ajustement du header
