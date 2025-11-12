@@ -195,7 +195,7 @@ const BoxDetails = () => {
             alignItems: "center",
             justifyContent: "space-between",
           }}
-className="object-contain transition-transform rounded-lg cursor-pointer scale-90 hover:scale-100"
+className="p-3 object-contain transition-transform rounded-lg cursor-pointer scale-80 hover:scale-100"
 onClick={() => setShowModal(true)}
         >
           {box.qrcodeURL && (
@@ -218,7 +218,7 @@ onClick={() => setShowModal(true)}
           </div> 
         </div>
         
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="flex justify-center mt-2 text-xs text-gray-500">
               Cliquez pour imprimer le QR code
             </p>
 
