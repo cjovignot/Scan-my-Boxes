@@ -43,7 +43,7 @@ const Storages = () => {
     };
 
     if (user?._id) fetchStorages();
-  }, [API_URL, user]);
+  }, [API_URL, user?._id]);
 
   // --- Filtrage & tri ---
   const filtered = storages

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/useApi";
 import * as htmlToImage from "html-to-image";
@@ -18,6 +18,7 @@ interface Box {
   destination: string;
   storageId: string;
   content: ContentItem[];
+  fragile?: boolean;
   dimensions: {
     width: number;
     height: number;
@@ -181,45 +182,55 @@ const BoxDetails = () => {
           </h1>
         </motion.div>
 
-        {/* Étiquette invisible pour génération */}
-        <div
-          ref={labelRef}
-          style={{
-            width: "10cm",
-            height: "4cm",
-            // padding: "0.5cm",
-            background: "#fff",
-            color: "#000",
-            fontFamily: "Arial, sans-serif",
-          }}
-className="flex justify-center items-center p-4 mx-auto object-contain transition-transform rounded-lg cursor-pointer scale-80 hover:scale-100"
-onClick={() => setShowModal(true)}
-        >
-          {box.qrcodeURL && (
-            <img
-              src={box.qrcodeURL}
-              alt="QR"
-              style={{
-                width: "3cm",
-                height: "3cm",
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-              }}
-            />
-          )}
-          <div className="flex-1 ml-4">
-            <h2 className="text-4xl font-bold">{box.number}</h2>
-            <p className="text-xl font-semibold text-gray-800">
-              {box.destination}
-            </p>
-          </div> 
+        {/* Étiquette pour génération */}
+        <div className="flex scale-80">
+          <div
+            ref={labelRef}
+            style={{
+              width: "10cm",
+              height: "4cm",
+              // padding: "0.5cm",
+              background: "#fff",
+              color: "#000",
+              fontFamily: "Arial, sans-serif",
+            }}
+            className="flex items-center justify-center object-contain p-4 transition-transform rounded-lg cursor-pointer hover:scale-101"
+            onClick={() => setShowModal(true)}
+          >
+            {box.qrcodeURL && (
+              <img
+                src={box.qrcodeURL}
+                alt="QR"
+                style={{
+                  width: "3cm",
+                  height: "3cm",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                }}
+              />
+            )}
+            <div className="flex-1 ml-4">
+              <h2 className="text-4xl font-bold">{box.number}</h2>
+              <p className="text-xl font-semibold text-gray-800">
+                {box.destination}
+              </p>
+              <span className="flex items-center justify-end gap-1 pr-3 font-bold text-red-400">
+                {box.fragile && (
+                  <>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 border border-red-300 rounded-full shadow-sm">
+                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                      <span>Fragile</span>
+                    </div>
+                  </>
+                )}
+              </span>
+            </div>
+          </div>
         </div>
-        
-                    <p className="flex justify-center mt-2 text-xs text-gray-500">
-              Cliquez pour imprimer le QR code
-            </p>
 
-
+        <p className="flex justify-center mt-2 text-xs text-gray-500">
+          Cliquez pour imprimer le QR code
+        </p>
         {/* Informations de la boîte */}
         <div className="relative w-full p-4 mx-auto mt-4 bg-gray-900 border border-gray-800 rounded-2xl">
           <p className="mb-3 text-sm text-gray-300">

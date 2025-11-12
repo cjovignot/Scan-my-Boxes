@@ -49,7 +49,8 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    if (!Types.ObjectId.isValid(id)) return res.status(400).json({ error: "ID invalide" });
+    if (!Types.ObjectId.isValid(id))
+      return res.status(400).json({ error: "ID invalide" });
 
     const box = await Box.findById(id);
     if (!box) return res.status(404).json({ error: "Boîte introuvable" });
@@ -67,14 +68,24 @@ router.get("/:id", async (req, res) => {
  */
 router.post("/", async (req, res) => {
   try {
-    const { ownerId, storageId, destination, content, dimensions, fragile } = req.body;
-    if (!ownerId || !storageId) return res.status(400).json({ error: "ownerId et storageId sont requis" });
+    const { ownerId, storageId, destination, content, dimensions, fragile } =
+      req.body;
+    if (!ownerId || !storageId)
+      return res
+        .status(400)
+        .json({ error: "ownerId et storageId sont requis" });
 
-    const ownerObjectId = Types.ObjectId.isValid(ownerId) ? new Types.ObjectId(ownerId) : ownerId;
-    const storageObjectId = Types.ObjectId.isValid(storageId) ? new Types.ObjectId(storageId) : storageId;
+    const ownerObjectId = Types.ObjectId.isValid(ownerId)
+      ? new Types.ObjectId(ownerId)
+      : ownerId;
+    const storageObjectId = Types.ObjectId.isValid(storageId)
+      ? new Types.ObjectId(storageId)
+      : storageId;
 
     // Numéro unique par user
-    const userBoxes = await Box.find({ ownerId: ownerObjectId }).sort({ createdAt: 1 });
+    const userBoxes = await Box.find({ ownerId: ownerObjectId }).sort({
+      createdAt: 1,
+    });
     const nextNumber = (userBoxes.length + 1).toString().padStart(3, "0");
     const boxNumber = `BOX-${nextNumber}`;
 
@@ -95,10 +106,14 @@ router.post("/", async (req, res) => {
     const savedBox = await newBox.save();
 
     // Ajoute la boîte à l'entrepôt
-    await updateStorageById(storageObjectId.toString(), { $addToSet: { boxes: savedBox._id } });
+    await updateStorageById(storageObjectId.toString(), {
+      $addToSet: { boxes: savedBox._id },
+    });
 
     // Génère QR code et upload Cloudinary
-    const boxURL = `${process.env.FRONTEND_URL || "https://scanmyboxes.app"}/box/${savedBox._id}`;
+    const boxURL = `${
+      process.env.FRONTEND_URL || "https://scanmyboxes.app"
+    }/box/${savedBox._id}`;
     const qrCodeDataURL = await QRCode.toDataURL(boxURL);
 
     const uploadResponse = await cloudinary.v2.uploader.upload(qrCodeDataURL, {
@@ -123,8 +138,11 @@ router.post("/", async (req, res) => {
  */
 router.put("/:id", async (req, res) => {
   try {
-    const updatedBox = await Box.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedBox) return res.status(404).json({ error: "Boîte introuvable" });
+    const updatedBox = await Box.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!updatedBox)
+      return res.status(404).json({ error: "Boîte introuvable" });
     res.json(updatedBox);
   } catch (err) {
     console.error("Erreur mise à jour boîte :", err);
@@ -142,7 +160,9 @@ router.delete("/:id", async (req, res) => {
     if (!box) return res.status(404).json({ error: "Boîte introuvable" });
 
     await Box.findByIdAndDelete(req.params.id);
-    await updateStorageById(box.storageId.toString(), { $pull: { boxes: box._id } });
+    await updateStorageById(box.storageId.toString(), {
+      $pull: { boxes: box._id },
+    });
 
     res.json({ message: "Boîte supprimée et retirée de l’entrepôt" });
   } catch (err) {
