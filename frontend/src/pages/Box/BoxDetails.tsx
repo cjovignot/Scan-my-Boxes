@@ -195,7 +195,8 @@ const BoxDetails = () => {
             alignItems: "center",
             justifyContent: "space-between",
           }}
-          className="absolute -mt-10 -z-100"
+className="object-contain transition-transform rounded-lg cursor-pointer scale-90 hover:scale-100"
+onClick={() => setShowModal(true)}
         >
           {box.qrcodeURL && (
             <img
@@ -214,23 +215,13 @@ const BoxDetails = () => {
             <p className="text-xl font-semibold text-gray-800">
               {box.destination}
             </p>
-          </div>
+          </div> 
         </div>
-
-        {/* QR Code cliquable */}
-        {box.qrcodeURL && (
-          <div className="flex flex-col items-center justify-center mt-2">
-            <img
-              src={box.qrcodeURL}
-              alt="QR Code"
-              className="object-contain w-48 h-48 transition-transform border border-gray-700 rounded-lg cursor-pointer bg-gray-800/60 hover:scale-105"
-              onClick={() => setShowModal(true)}
-            />
-            <p className="mt-2 text-xs text-gray-500">
+        
+                    <p className="mt-2 text-xs text-gray-500">
               Cliquez pour imprimer le QR code
             </p>
-          </div>
-        )}
+
 
         {/* Informations de la boîte */}
         <div className="relative w-full p-4 mx-auto mt-4 bg-gray-900 border border-gray-800 rounded-2xl">
