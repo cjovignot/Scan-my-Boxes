@@ -12,6 +12,7 @@ import Settings from "./pages/Settings";
 import Storages from "./pages/Storages";
 import Boxes from "./pages/Boxes";
 import BoxDetails from "./pages/Box/BoxDetails";
+import BoxEdit from "./pages/Box/BoxEdit";
 import ScanPage from "./pages/ScanPage";
 import BoxCreate from "./pages/BoxCreate";
 import StorageCreate from "./pages/StorageCreate";
@@ -67,6 +68,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/boxes" element={<Boxes />} />
             <Route path="/box/boxdetails/:id" element={<BoxDetails />} />
+            <Route path="/box/boxEdit/:id" element={<BoxEdit />} />
             <Route path="/boxes/new" element={<BoxCreate />} />
             <Route path="/storages/new" element={<StorageCreate />} />
             <Route path="/scan" element={<ScanPage />} />

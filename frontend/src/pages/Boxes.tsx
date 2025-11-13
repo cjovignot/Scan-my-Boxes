@@ -266,7 +266,7 @@ const Boxes = () => {
                     </h2>
 
                     <div className="flex items-center gap-3">
-                      <button
+                      {/* <button
                         className="p-2 transition-colors rounded hover:bg-gray-700"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -274,7 +274,7 @@ const Boxes = () => {
                         }}
                       >
                         <Pencil size={18} />
-                      </button>
+                      </button> */}
                       <button
                         className="p-2 transition-colors rounded hover:bg-red-700"
                         onClick={(e) => {

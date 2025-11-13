@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Printer, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Printer, AlertTriangle, Edit3 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/useApi"; // ✅ déjà importé
 import * as htmlToImage from "html-to-image";
@@ -179,9 +179,17 @@ const BoxDetails = () => {
             <ArrowLeft size={16} />
             Retour
           </button>
-          <h1 className="mt-4 text-3xl font-semibold text-yellow-400">
-            📦 {box.number}
-          </h1>
+          <div className="flex items-center justify-between mt-4">
+            <h1 className="text-3xl font-semibold text-yellow-400">
+              📦 {box.number}
+            </h1>
+            <button
+              onClick={() => navigate(`/box/boxEdit/${box._id}`)}
+              className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-yellow-400 rounded-lg"
+            >
+              <Edit3 size={20} />
+            </button>
+          </div>
         </motion.div>
 
         {/* Étiquette pour génération */}
@@ -264,17 +272,25 @@ const BoxDetails = () => {
                   key={idx}
                   className="flex items-start justify-start gap-3 px-3 py-2 text-sm text-gray-200 bg-gray-800 rounded-lg"
                 >
-                  {item.picture && (
-                    <img
-                      src={item.picture}
-                      alt={item.name}
-                      className="object-cover w-20 h-20 border border-gray-700 rounded-lg"
-                    />
-                  )}
-                  <span className="font-medium">{item.name}</span>
-                  {item.quantity && (
-                    <span className="text-gray-400">x{item.quantity}</span>
-                  )}
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex">
+                      {item.picture && (
+                        <img
+                          src={item.picture}
+                          alt={item.name}
+                          className="object-cover w-20 h-20 border border-gray-700 rounded-lg"
+                        />
+                      )}
+                      <span className="ml-3 font-medium text-yellow-400 text-md">
+                        {item.name}
+                      </span>
+                    </div>
+                    {item.quantity && (
+                      <span className="h-full p-2 text-xl text-gray-300">
+                        x{item.quantity}
+                      </span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
