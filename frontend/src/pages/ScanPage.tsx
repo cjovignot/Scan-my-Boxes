@@ -92,7 +92,7 @@ const ScanPage = () => {
       <div className="flex flex-col items-center flex-1 px-4 py-6">
         <div className="relative w-full max-w-md overflow-hidden border border-gray-700 aspect-square rounded-2xl">
           <div className="absolute z-20 flex items-center gap-2 px-2 py-1 -translate-x-1/2 border border-gray-600 rounded-full top-3 left-1/2 bg-black/60 backdrop-blur-sm w-fit">
-            <span className=" no-wrap text-xs text-gray-300">Mode lecture</span>
+            <span className="flex no-wrap text-xs text-gray-300">Mode lecture</span>
             <label className="relative inline-flex items-center flex-shrink-0 cursor-pointer">
               <input
                 type="checkbox"
@@ -105,7 +105,7 @@ const ScanPage = () => {
               <div className="w-10 h-5 transition-all duration-300 bg-gray-700 rounded-full peer peer-checked:bg-yellow-400"></div>
               <div className="absolute left-[2px] top-[2px] w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
             </label>
-            <span className="text-xs text-gray-300">Mode stockage</span>
+            <span className="flex no-wrap text-xs text-gray-300">Mode stockage</span>
           </div>
 
           <Scanner
