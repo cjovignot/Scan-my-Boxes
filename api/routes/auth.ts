@@ -58,7 +58,7 @@ router.post("/google-login", async (req, res) => {
     let user = await findUserByEmail(email);
 
     if (!user) {
-      console.log(`🆕 Création nouvel utilisateur Google : ${email}`);
+      // console.log(`🆕 Création nouvel utilisateur Google : ${email}`);
       user = await createUser({
         name,
         email,

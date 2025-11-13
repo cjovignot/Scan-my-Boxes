@@ -217,7 +217,7 @@ const BoxDetails = () => {
               </p>
               <span className="flex items-center justify-end gap-1 pr-3 font-bold text-red-400">
                 {box.fragile && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 border border-red-300 rounded-full shadow-sm">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 border border-red-300 rounded-full">
                     <AlertTriangle className="w-4 h-4 text-red-500" />
                     <span>Fragile</span>
                   </div>

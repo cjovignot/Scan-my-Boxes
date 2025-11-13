@@ -28,13 +28,13 @@ function App() {
       window.addEventListener("load", () => {
         navigator.serviceWorker
           .register("/sw.js")
-          .then((reg) =>
-            console.log("🟢 Service Worker enregistré :", reg.scope)
-          )
+          // .then((reg) =>
+          //   console.log("🟢 Service Worker enregistré :", reg.scope)
+          // )
           .catch((err) => console.error("🔴 Erreur Service Worker :", err));
       });
     } else {
-      console.log("⚙️ Service Worker ignoré (mode développement)");
+      // console.log("⚙️ Service Worker ignoré (mode développement)");
     }
   }, []);
 
@@ -45,10 +45,10 @@ function App() {
       (window.navigator as any).standalone; // support iOS
 
     if (isStandalone) {
-      console.log("📱 App lancée en mode PWA standalone");
+      // console.log("📱 App lancée en mode PWA standalone");
       // Optionnel : tu pourrais stocker ça dans ton contexte Auth ou analytics
     } else {
-      console.log("🌐 App lancée dans le navigateur classique");
+      // console.log("🌐 App lancée dans le navigateur classique");
     }
   }, []);
 

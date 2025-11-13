@@ -106,9 +106,9 @@ router.delete("/:id", async (req, res) => {
 
     // 🗑️ Supprimer les boîtes associées
     const deleteResult = await Box.deleteMany({ storageId });
-    console.log(
-      `🗑️ ${deleteResult.deletedCount} boîtes supprimées pour storage ${storageIdStr}`
-    );
+    // console.log(
+    //   `🗑️ ${deleteResult.deletedCount} boîtes supprimées pour storage ${storageIdStr}`
+    // );
 
     // 🏭 Supprimer l’entrepôt
     const deletedStorage = await deleteStorageById(storageIdStr);
@@ -120,7 +120,7 @@ router.delete("/:id", async (req, res) => {
       message: `Entrepôt supprimé (${deleteResult.deletedCount} boîtes supprimées).`,
     });
   } catch (error) {
-    console.error("Erreur suppression entrepôt :", error);
+    // console.error("Erreur suppression entrepôt :", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
 });
