@@ -101,7 +101,8 @@ const Profile = () => {
               <LogOut size={16} />
               Se déconnecter
             </motion.button>
-            </motion.div>
+          </div>
+        </motion.div>
 
         {/* Tableau de bord */}
         <motion.div
