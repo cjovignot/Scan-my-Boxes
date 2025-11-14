@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCloudinaryImage } from "../hooks/useCloudinaryImage";
 import PageWrapper from "../components/PageWrapper";
 import BoxItem from "../components/BoxItem";
 import { motion } from "framer-motion";
 import {
-  Trash,
   Plus,
   ArrowUpDown,
   ArrowDownUp,
@@ -29,7 +27,7 @@ type Box = {
   storageId: string;
   number: string;
   content: ContentItem[];
-  fragile: string;
+  fragile: boolean;
   destination: string;
   qrcodeURL: string;
   dimensions: {
@@ -70,7 +68,32 @@ const Boxes = () => {
   const contentRef = useRef<HTMLDivElement | null>(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  // =====================================
+  // 🚨 Aucun utilisateur connecté
+  // =====================================
+  if (!user) {
+    return (
+      <PageWrapper>
+        <div className="flex flex-col items-center justify-center min-h-screen px-6 text-white">
+          <h2 className="mb-4 text-2xl font-bold text-yellow-400">
+            Vous n’êtes pas connecté
+          </h2>
+          <p className="mb-6 text-center text-gray-400">
+            Pour consulter vos boîtes, merci de créer un compte ou de vous
+            connecter.
+          </p>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-6 py-3 text-black bg-yellow-400 rounded-full hover:bg-yellow-500"
+          >
+            Se connecter / Créer un compte
+          </button>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   // =====================================
   // 🔹 Fetch des boîtes de l’utilisateur
@@ -91,9 +114,8 @@ const Boxes = () => {
       }
     };
 
-    if (user?._id) fetchBoxes();
-    else setBoxes([]);
-  }, [API_URL, user?._id]);
+    fetchBoxes();
+  }, [API_URL, user._id]);
 
   // =====================================
   // 🔹 Fetch des entrepôts
@@ -112,9 +134,8 @@ const Boxes = () => {
       }
     };
 
-    if (user?._id) fetchStorages();
-    else setStorages([]);
-  }, [API_URL, user?._id]);
+    fetchStorages();
+  }, [API_URL, user._id]);
 
   // =====================================
   // 🔹 Suppression d’une boîte
@@ -149,24 +170,20 @@ const Boxes = () => {
           )
     )
     .filter((box) => {
-      // Filtre fragilité
       if (filterFragile === "fragile") return box.fragile === true;
       if (filterFragile === "nonFragile") return box.fragile === false;
       return true;
     })
-    .filter((box) => {
-      // Filtre entrepôt
-      return filterStorage === "all" ? true : box.storageId === filterStorage;
-    })
+    .filter((box) =>
+      filterStorage === "all" ? true : box.storageId === filterStorage
+    )
     .sort((a, b) => {
-      // Tri par numéro si défini
       if (sortByNumber) {
         return sortByNumber === "asc"
           ? a.number.localeCompare(b.number)
           : b.number.localeCompare(a.number);
       }
 
-      // Sinon tri par le mode principal
       if (sortMode === "destination") {
         return ascending
           ? a.destination.localeCompare(b.destination)

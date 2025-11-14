@@ -30,7 +30,32 @@ const Storages = () => {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  // =====================================
+  // 🚨 Aucun utilisateur connecté
+  // =====================================
+  if (!user) {
+    return (
+      <PageWrapper>
+        <div className="flex flex-col items-center justify-center min-h-screen px-6 text-white">
+          <h2 className="mb-4 text-2xl font-bold text-yellow-400">
+            Vous n’êtes pas connecté
+          </h2>
+          <p className="mb-6 text-center text-gray-400">
+            Pour consulter vos entrepôts, merci de créer un compte ou de vous
+            connecter.
+          </p>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-6 py-3 text-black bg-yellow-400 rounded-full hover:bg-yellow-500"
+          >
+            Se connecter / Créer un compte
+          </button>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   // 🔹 Hook custom pour récupérer les entrepôts
   const {

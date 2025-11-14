@@ -1,10 +1,9 @@
 import { useEffect } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { motion } from "framer-motion";
-import { LogOut, Trash2, ChevronRight } from "lucide-react";
+import { LogOut, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
-import { useApiMutation } from "../hooks/useApiMutation";
 
 interface DashboardLink {
   label: string;
@@ -22,35 +21,22 @@ const Profile = () => {
   const { user, logout } = useAuth()!;
   const navigate = useNavigate();
 
+  const getInitials = (name: string | undefined) => {
+    if (!name) return "?";
+    return name
+      .split(" ") // découpe chaque mot
+      .map((word) => word[0]) // prend la première lettre
+      .join("") // concatène
+      .toUpperCase(); // met en majuscule
+  };
+
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  // 🔹 Mutation suppression compte
-  const { mutate: deleteAccount, loading: deleting } = useApiMutation<
-    { success: boolean },
-    void
-  >(`/api/user/${user?._id}`, "DELETE", {
-    onSuccess: () => {
-      logout();
-      alert("Compte supprimé avec succès.");
-      navigate("/register");
-    },
-    onError: (err) => {
-      console.error("Erreur suppression compte :", err);
-      alert("Erreur lors de la suppression du compte.");
-    },
-  });
-
   const handleLogout = () => {
     logout();
     navigate("/login");
-  };
-
-  const handleDeleteAccount = () => {
-    if (!user?._id) return alert("Utilisateur introuvable.");
-    if (!confirm("❌ Es-tu sûr de vouloir supprimer ton compte ?")) return;
-    deleteAccount();
   };
 
   if (!user) return null;
@@ -78,8 +64,8 @@ const Profile = () => {
                 className="w-24 h-24 border-2 border-yellow-400 rounded-full shadow-md"
               />
             ) : (
-              <div className="flex items-center justify-center w-24 h-24 text-3xl font-bold text-gray-600 bg-gray-800 border-2 border-gray-700 rounded-full">
-                {user.name?.charAt(0) || "?"}
+              <div className="flex items-center justify-center w-24 h-24 text-3xl font-bold text-yellow-400 bg-gray-900 border-2 border-yellow-400 rounded-full shadow-md">
+                {getInitials(user.name)}
               </div>
             )}
           </div>
