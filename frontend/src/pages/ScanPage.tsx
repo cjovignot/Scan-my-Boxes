@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { ArrowLeft, ChevronDown, X, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { useApiMutation } from "../hooks/useApiMutation";
 interface Box {
   _id: string;
   number: string;
+  ownerId: string;
+  storageId?: string;
 }
 
 const ScanPage = () => {
@@ -17,11 +19,9 @@ const ScanPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"lecture" | "stockage">("lecture");
   const [selectedStorage, setSelectedStorage] = useState("");
-  const [scannedBoxes, setScannedBoxes] = useState<string[]>([]);
   const [scannedBoxesData, setScannedBoxesData] = useState<Box[]>([]);
   const [showModal, setShowModal] = useState(false);
 
-  // 🔹 Récupération des entrepôts de l'utilisateur
   const {
     data: storages,
     loading: loadingStorages,
@@ -30,24 +30,11 @@ const ScanPage = () => {
     user?._id ? `/api/storages?ownerId=${user._id}` : null
   );
 
-  // 🔹 Mutation pour sauvegarder les boîtes
-  const { mutate: saveBoxes, loading: saving } = useApiMutation<
-    { success: boolean },
-    { storageId: string; boxIds: string[]; userId: string }
-  >("/api/storages/add-boxes", "POST", {
-    onSuccess: () => {
-      alert("✅ Boîtes enregistrées avec succès !");
-      setScannedBoxes([]);
-      setScannedBoxesData([]);
-      setShowModal(false);
-    },
-    onError: (err) => {
-      console.error(err);
-      alert("❌ Erreur lors de l’enregistrement.");
-    },
-  });
+  const { mutate: updateBox, loading: updating } = useApiMutation<
+    Box,
+    Partial<Box>
+  >("/api/boxes", "PUT", {});
 
-  // 🔹 Gestion du scan
   const handleScan = async (res: any) => {
     if (!res || res.length === 0) return;
     const qrValue = res[0].rawValue;
@@ -84,38 +71,48 @@ const ScanPage = () => {
       const parts = qrValue.split("/");
       const boxId = parts[parts.length - 1];
 
-      if (!scannedBoxes.includes(boxId)) {
-        setScannedBoxes((prev) => [...prev, boxId]);
+      // Récupérer la boîte
+      try {
+        const box: Box = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/boxes/${boxId}`
+        ).then((res) => res.json());
 
-        // Récupérer les infos de la boîte avec useApi
-        try {
-          const box: Box = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/boxes/${boxId}`
-          ).then((res) => res.json());
-
-          setScannedBoxesData((prev) =>
-            prev.find((b) => b._id === box._id) ? prev : [...prev, box]
-          );
-        } catch {
-          console.error("Erreur lors de la récupération de la boîte");
-        }
+        setScannedBoxesData((prev) => {
+          if (prev.find((b) => b._id === box._id)) return prev;
+          return [...prev, box];
+        });
+      } catch {
+        console.error("Erreur lors de la récupération de la boîte");
       }
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user?._id) {
       alert("❌ Connectez-vous pour enregistrer les boîtes.");
       return navigate("/login");
     }
     if (!selectedStorage) return alert("❌ Sélectionnez un entrepôt.");
-    if (scannedBoxes.length === 0) return alert("❌ Aucune boîte scannée.");
+    if (scannedBoxesData.length === 0) return alert("❌ Aucune boîte scannée.");
 
-    saveBoxes({
-      storageId: selectedStorage,
-      boxIds: scannedBoxes,
-      userId: user._id,
-    });
+    try {
+      // Mise à jour de chaque boîte
+      await Promise.all(
+        scannedBoxesData.map((box) =>
+          updateBox(
+            { storageId: selectedStorage },
+            { url: `/api/boxes/${box._id}` }
+          )
+        )
+      );
+
+      alert("✅ Boîtes enregistrées avec succès !");
+      setScannedBoxesData([]);
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Erreur lors de l’enregistrement.");
+    }
   };
 
   return (
@@ -163,7 +160,7 @@ const ScanPage = () => {
       {/* Scanner */}
       <div className="flex flex-col items-center flex-1 px-4 py-6">
         <div className="relative w-full max-w-md overflow-hidden border border-gray-700 aspect-square rounded-2xl">
-          {/* <div className="absolute z-20 flex items-center gap-2 px-2 py-1 -translate-x-1/2 border border-gray-600 rounded-full top-3 left-1/2 bg-black/60 backdrop-blur-sm w-fit">
+          <div className="absolute z-20 flex items-center gap-2 px-2 py-1 -translate-x-1/2 border border-gray-600 rounded-full top-3 left-1/2 bg-black/60 backdrop-blur-sm w-fit">
             <span className="text-xs text-gray-300 whitespace-nowrap">
               Mode lecture
             </span>
@@ -182,7 +179,7 @@ const ScanPage = () => {
             <span className="text-xs text-gray-300 whitespace-nowrap">
               Mode stockage
             </span>
-          </div> */}
+          </div>
 
           <Scanner
             onScan={handleScan}
@@ -291,10 +288,10 @@ const ScanPage = () => {
             <div className="p-4 border-t border-gray-800 bg-gray-900/70">
               <button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={updating}
                 className="w-full px-4 py-2 text-black bg-yellow-400 rounded-lg hover:bg-yellow-500 disabled:opacity-60"
               >
-                {saving ? "Enregistrement..." : "✅ Fin de saisie"}
+                {updating ? "Enregistrement..." : "✅ Fin de saisie"}
               </button>
             </div>
           </div>
