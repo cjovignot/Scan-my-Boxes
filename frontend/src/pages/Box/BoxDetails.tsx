@@ -2,9 +2,17 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCloudinaryImage } from "../../hooks/useCloudinaryImage";
 import BoxDetailsItem from "../../components/boxDetailsItem";
-import { ArrowLeft, Printer, AlertTriangle, Edit3 } from "lucide-react";
+import {
+  ArrowLeft,
+  Printer,
+  AlertTriangle,
+  Edit3,
+  Plus,
+  Minus,
+} from "lucide-react";
 import { motion } from "framer-motion";
-import { useApi } from "../../hooks/useApi"; // ✅ déjà importé
+import { useApi } from "../../hooks/useApi";
+import { usePrint } from "../../hooks/usePrint";
 import * as htmlToImage from "html-to-image";
 
 interface ContentItem {
@@ -51,6 +59,9 @@ const BoxDetails = () => {
     error,
     refetch,
   } = useApi<Box>(`/api/boxes/${id}`, { skip: !id }); // ✅ plus besoin du "id ? ... : undefined"
+
+  const { selectedBoxes, toggleBox } = usePrint();
+  const isSelected = selectedBoxes.includes(box?._id);
 
   const [storageName, setStorageName] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
@@ -305,12 +316,28 @@ const BoxDetails = () => {
                 disabled={!labelImage}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-yellow-400 rounded-lg hover:bg-yellow-500 disabled:opacity-50"
               >
-                <Printer size={18} />
-                Imprimer
+                <Printer size={20} />
               </button>
               <button
+                className={`flex justify-center items-center gap-1 px-2 py-2 text-sm font-medium border-2 rounded-lg hover:bg-yellow-500 disabled:opacity-50
+    ${
+      selectedBoxes.includes(box._id)
+        ? "bg-green-700 text-white border-green-700"
+        : "text-yellow-400 border-yellow-400"
+    }`}
+                onClick={() => toggleBox(box._id)}
+              >
+                {selectedBoxes.includes(box._id) ? (
+                  <Minus size={15} />
+                ) : (
+                  <Plus size={15} />
+                )}
+                <Printer size={20} />
+              </button>
+
+              <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm text-gray-300 transition-colors border border-gray-700 rounded-lg hover:bg-gray-800"
+                className="px-4 py-2 text-sm text-gray-300 transition-colors border-2 border-gray-800 rounded-lg hover:bg-gray-800"
               >
                 Fermer
               </button>

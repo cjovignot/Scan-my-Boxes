@@ -19,7 +19,7 @@ const router = express.Router();
  */
 router.get("/", async (req, res) => {
   try {
-    const { ownerId, storageId } = req.query;
+    const { ownerId, storageId, ids } = req.query;
     const filter: any = {};
 
     if (ownerId) {
@@ -32,6 +32,15 @@ router.get("/", async (req, res) => {
       filter.storageId = Types.ObjectId.isValid(storageId as string)
         ? new Types.ObjectId(storageId as string)
         : storageId;
+    }
+
+    // 🔹 Filtrer par ids si fourni
+    if (ids) {
+      const idsArray = (ids as string)
+        .split(",")
+        .filter(Types.ObjectId.isValid)
+        .map((id) => new Types.ObjectId(id));
+      filter._id = { $in: idsArray };
     }
 
     const boxes = await Box.find(filter).sort({ createdAt: -1 });

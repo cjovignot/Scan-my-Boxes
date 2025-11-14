@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { useAuth } from "./contexts/useAuth";
+import FloatingPrintButton from "./components/FloatingPrintButton";
 import MobileLayout from "./layouts/MobileLayout";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -16,6 +17,7 @@ import Storages from "./pages/Storages";
 import Boxes from "./pages/Boxes";
 import BoxDetails from "./pages/Box/BoxDetails";
 import BoxEdit from "./pages/Box/BoxEdit";
+import PrintGroup from "./pages/PrintGroup";
 import ScanPage from "./pages/ScanPage";
 import BoxCreate from "./pages/BoxCreate";
 import StorageCreate from "./pages/StorageCreate";
@@ -115,6 +117,15 @@ function App() {
               }
             />
             <Route
+              path="/printgroup"
+              element={
+                <ProtectedRoute>
+                  <PrintGroup />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/boxes/new"
               element={
                 <ProtectedRoute>
@@ -136,6 +147,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
+        <FloatingPrintButton />
       </AnimatePresence>
     </AuthProvider>
   );
