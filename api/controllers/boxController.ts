@@ -5,6 +5,10 @@ export const createBox = async (req: Request, res: Response) => {
   try {
     const { ownerId, storageId, destination, content, dimensions } = req.body;
 
+    if (!ownerId) {
+      return res.status(400).json({ message: "ownerId est requis." });
+    }
+
     // 🔍 Trouver la dernière boîte de cet utilisateur
     const lastBox = await Box.findOne({ ownerId })
       .sort({ createdAt: -1 })
@@ -18,13 +22,13 @@ export const createBox = async (req: Request, res: Response) => {
       nextNumber = `BOX-${num.toString().padStart(3, "0")}`;
     }
 
-    // 🧱 Créer la boîte
+    // 🧱 Créer la boîte (storageId devient optionnel)
     const newBox = new Box({
       ownerId,
-      storageId,
+      storageId: storageId || null, // 👈 Optionnel
       number: nextNumber,
-      destination,
-      content,
+      destination: destination || "Inconnu",
+      content: content || [],
       dimensions,
     });
 

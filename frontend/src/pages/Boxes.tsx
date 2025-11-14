@@ -174,9 +174,12 @@ const Boxes = () => {
       if (filterFragile === "nonFragile") return box.fragile === false;
       return true;
     })
-    .filter((box) =>
-      filterStorage === "all" ? true : box.storageId === filterStorage
-    )
+    .filter((box) => {
+      if (filterStorage === "all") return true;
+      if (filterStorage === "none") return !box.storageId; // null ou undefined
+      return box.storageId === filterStorage;
+    })
+
     .sort((a, b) => {
       if (sortByNumber) {
         return sortByNumber === "asc"
@@ -278,6 +281,7 @@ const Boxes = () => {
                 className="w-full py-2 pl-8 pr-10 text-sm text-white bg-gray-800 border border-gray-700 rounded-lg appearance-none focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
               >
                 <option value="all">Tous</option>
+                <option value="none">Sans entrepôt</option>
                 {safeStorages.map((s) => (
                   <option key={s._id} value={s._id}>
                     {s.name}

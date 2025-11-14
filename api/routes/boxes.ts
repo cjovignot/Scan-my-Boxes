@@ -70,19 +70,22 @@ router.post("/", async (req, res) => {
   try {
     const { ownerId, storageId, destination, content, dimensions, fragile } =
       req.body;
-    if (!ownerId || !storageId)
-      return res
-        .status(400)
-        .json({ error: "ownerId et storageId sont requis" });
+
+    // ownerId requis, storageId optionnel
+    if (!ownerId) {
+      return res.status(400).json({ error: "ownerId est requis" });
+    }
 
     const ownerObjectId = Types.ObjectId.isValid(ownerId)
       ? new Types.ObjectId(ownerId)
       : ownerId;
-    const storageObjectId = Types.ObjectId.isValid(storageId)
-      ? new Types.ObjectId(storageId)
-      : storageId;
 
-    // Numéro unique par user
+    const storageObjectId =
+      storageId && Types.ObjectId.isValid(storageId)
+        ? new Types.ObjectId(storageId)
+        : null;
+
+    // Générer le numéro BOX-XXX
     const userBoxes = await Box.find({ ownerId: ownerObjectId }).sort({
       createdAt: 1,
     });
@@ -91,7 +94,7 @@ router.post("/", async (req, res) => {
 
     const newBox = new Box({
       ownerId: ownerObjectId,
-      storageId: storageObjectId,
+      storageId: storageObjectId || null,
       number: boxNumber,
       fragile: fragile || false,
       destination: destination || "Inconnu",
@@ -105,15 +108,18 @@ router.post("/", async (req, res) => {
 
     const savedBox = await newBox.save();
 
-    // Ajoute la boîte à l'entrepôt
-    await updateStorageById(storageObjectId.toString(), {
-      $addToSet: { boxes: savedBox._id },
-    });
+    // Ajouter la box dans l'entrepôt SEULEMENT si storageId fourni
+    if (storageObjectId) {
+      await updateStorageById(storageObjectId.toString(), {
+        $addToSet: { boxes: savedBox._id },
+      });
+    }
 
-    // Génère QR code et upload Cloudinary
+    // Génération du QR code
     const boxURL = `${
       process.env.FRONTEND_URL || "https://scanmyboxes.app"
     }/box/${savedBox._id}`;
+
     const qrCodeDataURL = await QRCode.toDataURL(boxURL);
 
     const uploadResponse = await cloudinary.v2.uploader.upload(qrCodeDataURL, {

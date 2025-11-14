@@ -181,7 +181,6 @@ const BoxCreate = () => {
               value={form.storageId}
               onChange={handleChange}
               className="w-full px-3 py-2 pr-10 text-sm text-white transition-colors border border-gray-700 rounded-lg appearance-none bg-gray-950 focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
-              required
             >
               <option value="">Sélectionnez un entrepôt</option>
               {loadingStorages ? (

@@ -40,7 +40,12 @@ const boxSchema = new Schema<IBox>(
       required: true,
       index: true,
     },
-    storageId: { type: Schema.Types.ObjectId, ref: "Storage", required: true },
+    storageId: {
+      type: Schema.Types.ObjectId,
+      ref: "Storage",
+      required: false,
+      default: null,
+    },
     number: { type: String, required: true },
     fragile: { type: Boolean, default: false },
     content: { type: [contentItemSchema], default: [] },

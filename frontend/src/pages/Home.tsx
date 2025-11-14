@@ -22,6 +22,7 @@ type Box = {
   destination: string;
   qrcodeURL: string;
   dimensions: { width: number; height: number; depth: number };
+  createdAt: string;
 };
 
 type Storage = {
@@ -86,7 +87,9 @@ const Dashboard = () => {
       ? Object.entries(destinationCount).sort((a, b) => b[1] - a[1])[0][0]
       : "N/A";
 
-  const lastBoxAdded = boxes[boxes.length - 1];
+  const lastBoxAdded = [...boxes].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )[0];
 
   const stats = [
     {
