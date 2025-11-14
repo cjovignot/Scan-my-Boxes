@@ -154,7 +154,11 @@ const Dashboard = () => {
   // =============================
 
   if (loadingStorages || loadingBoxes)
-    return <p className="text-center text-gray-400">Chargement...</p>;
+    return (
+      <p className="flex items-center justify-center min-h-screen text-center text-yellow-400">
+        Chargement...
+      </p>
+    );
 
   if (errorStorages || errorBoxes)
     return (
