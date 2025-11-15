@@ -23,10 +23,11 @@ interface Box {
 }
 
 const PrintGroup = () => {
+  // ---------- HOOKS ----------
   const { selectedBoxes, toggleBox, clearSelection } = usePrint();
   const [boxesToPrint, setBoxesToPrint] = useState<Box[]>([]);
   const [startIndex, setStartIndex] = useState(0);
-  const [presetId, setPresetId] = useState("microapp‑5057");
+  const [presetId, setPresetId] = useState("microapp-5057");
   const [presets, setPresets] = useState([...LABEL_PRESETS]);
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -45,12 +46,16 @@ const PrintGroup = () => {
       : null
   );
 
-  // 🔹 Ajouter le preset custom du user si existant
+  const [labelImages, setLabelImages] = useState<string[]>([]);
+  const [generating, setGenerating] = useState(false);
+
+  // ---------- EFFECTS ----------
+
+  // Ajouter le preset custom du user si existant
   useEffect(() => {
     if (userData?.printSettings) {
       const ps = userData.printSettings;
 
-      // Créer un preset complet à partir des valeurs user ou fallback
       const fullPreset = {
         id: ps.id || "custom",
         name: ps.name || "Personnalisé",
@@ -64,16 +69,16 @@ const PrintGroup = () => {
         gutterYcm: ps.gutterYcm || 0,
       };
 
-      // Ajouter si non présent
       if (!presets.find((p) => p.id === fullPreset.id)) {
         setPresets((prev) => [...prev, fullPreset]);
       }
 
-      // Sélectionner ce preset
       setPresetId(fullPreset.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userData]);
 
+  // Trier les boxes
   useEffect(() => {
     if (data) {
       const sortedBoxes = [...data].sort((a, b) =>
@@ -83,6 +88,7 @@ const PrintGroup = () => {
     }
   }, [data]);
 
+  // Ajuster la largeur du conteneur preview
   useEffect(() => {
     const updateWidth = () => {
       const width = previewRef.current?.clientWidth || window.innerWidth;
@@ -93,34 +99,54 @@ const PrintGroup = () => {
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
 
-  if (selectedBoxes.length === 0)
-    return (
-      <div className="flex items-center justify-center h-screen p-6 text-yellow-400">
-        Aucune boîte sélectionnée pour l'impression
-      </div>
-    );
+  // Génération des images pré-clic
+  useEffect(() => {
+    const generateAll = async () => {
+      if (!printContainerRef.current) return;
 
-  if (loading)
-    return (
-      <div className="p-6 text-center text-yellow-400">
-        Chargement des boîtes...
-      </div>
-    );
+      const children = Array.from(
+        printContainerRef.current.children
+      ) as HTMLDivElement[];
+      if (children.length === 0) {
+        setLabelImages([]);
+        return;
+      }
 
-  if (error)
-    return (
-      <div className="p-6 text-center text-red-400">
-        Erreur lors de la récupération des boîtes : {error}
-      </div>
-    );
+      setGenerating(true);
+      const imgs: string[] = [];
 
+      for (const node of children) {
+        try {
+          const dataUrl = await htmlToImage.toPng(node, {
+            quality: 1,
+            backgroundColor: "#fff",
+            pixelRatio: 2,
+          });
+          imgs.push(dataUrl);
+        } catch (err) {
+          console.error("Erreur génération étiquette (pré-génération) :", err);
+        }
+      }
+
+      setLabelImages(imgs);
+      setGenerating(false);
+    };
+
+    const t = setTimeout(() => {
+      generateAll();
+    }, 50);
+
+    return () => clearTimeout(t);
+  }, [boxesToPrint, presetId, containerWidthPx, startIndex]);
+
+  // ---------- VARIABLES ----------
   const preset = presets.find((p) => p.id === presetId) || LABEL_PRESETS[0];
   const rowsPerPage = (preset as any).rows || 1;
   const colsPerPage = (preset as any).cols || 1;
   const totalSlots = rowsPerPage * colsPerPage;
   const gapPx = 4;
 
-  const labelsWithOffset = Array(totalSlots).fill(null);
+  const labelsWithOffset = Array(totalSlots).fill(null) as Array<Box | null>;
   boxesToPrint.forEach((box, idx) => {
     const position = startIndex + idx;
     if (position < totalSlots) labelsWithOffset[position] = box;
@@ -132,43 +158,84 @@ const PrintGroup = () => {
     (containerWidthPx - gapPx * (colsPerPage - 1)) / colsPerPage;
   const labelHeightPx = labelWidthPx / labelRatio;
 
-  const handlePrint = async () => {
-    if (!printContainerRef.current) return;
+  // ---------- HANDLER PRINT ----------
+  const handlePrint = () => {
+    if (!labelImages || labelImages.length === 0) return;
 
-    // ouvrir la nouvelle page (AVANT async)
-    const printWindow = window.open("/print.html", "_blank");
-    if (!printWindow) return;
-
-    // attendre que la fenêtre charge son script
-    const waitLoaded = () =>
-      new Promise<void>((resolve) => {
-        const timer = setInterval(() => {
-          try {
-            if (printWindow.document.readyState === "complete") {
-              clearInterval(timer);
-              resolve();
-            }
-          } catch {}
-        }, 50);
-      });
-
-    await waitLoaded();
-
-    // générer les images
-    const images: string[] = [];
-    const labels = [...printContainerRef.current.children] as HTMLDivElement[];
-
-    for (const label of labels) {
-      const dataUrl = await htmlToImage.toPng(label, {
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
-      images.push(dataUrl);
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      console.error("Impossible d'ouvrir la fenêtre d'impression");
+      return;
     }
 
-    printWindow.postMessage(images, "*");
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Étiquettes</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            html, body { margin: 0; padding: 0; background: white; }
+            body {
+              padding-top: ${preset.marginTopCm}cm;
+              padding-left: ${preset.marginLeftCm}cm;
+              display: grid;
+              grid-template-columns: repeat(${preset.cols}, ${
+      preset.labelWidthCm
+    }cm);
+              grid-auto-rows: ${preset.labelHeightCm}cm;
+              gap: ${preset.gutterYcm}cm ${preset.gutterXcm}cm;
+            }
+            img {
+              width: ${preset.labelWidthCm}cm;
+              height: ${preset.labelHeightCm}cm;
+              object-fit: contain;
+              display: block;
+              margin: 0;
+              padding: 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${labelImages.map((src) => `<img src="${src}" />`).join("")}
+          <script>
+            window.onload = () => {
+              window.print();
+              window.onafterprint = () => window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
   };
 
+  // ---------- RETURN CONDITIONNEL ----------
+  if (selectedBoxes.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen p-6 text-yellow-400">
+        Aucune boîte sélectionnée pour l'impression
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-yellow-400">
+        Chargement des boîtes...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-400">
+        Erreur lors de la récupération des boîtes : {error}
+      </div>
+    );
+  }
+
+  // ---------- RENDER ----------
   return (
     <>
       <div className="p-6">
@@ -204,7 +271,6 @@ const PrintGroup = () => {
         ref={previewRef}
         style={{
           width: "90%",
-          // display: "grid",
           gridTemplateColumns: `repeat(${colsPerPage}, 1fr)`,
           gap: `${gapPx}px`,
         }}
@@ -342,6 +408,7 @@ const PrintGroup = () => {
         <button
           onClick={handlePrint}
           className="flex gap-2 px-4 py-2 text-black bg-green-400 rounded-lg hover:bg-green-500"
+          disabled={generating || labelImages.length === 0}
         >
           <PrinterCheck /> Imprimer
         </button>
@@ -350,15 +417,7 @@ const PrintGroup = () => {
       {/* Rendu invisible pour html-to-image */}
       <div
         ref={printContainerRef}
-        style={{
-          position: "fixed",
-          inset: "0",
-          width: 0,
-          height: 0,
-          overflow: "hidden",
-          pointerEvents: "none",
-          opacity: 0,
-        }}
+        style={{ position: "absolute", left: "-9999px", top: "-9999px" }}
       >
         {labelsWithOffset.map((box, idx) => {
           const qrSize = labelHeightPx * 0.9;
@@ -454,6 +513,12 @@ const PrintGroup = () => {
           );
         })}
       </div>
+
+      {generating && (
+        <div className="fixed px-4 py-2 text-yellow-400 -translate-x-1/2 bg-gray-900 rounded-lg shadow-lg bottom-4 left-1/2">
+          ⚙️ Génération des étiquettes...
+        </div>
+      )}
     </>
   );
 };
