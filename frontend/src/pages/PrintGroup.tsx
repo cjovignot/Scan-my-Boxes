@@ -158,56 +158,77 @@ const PrintGroup = () => {
     (containerWidthPx - gapPx * (colsPerPage - 1)) / colsPerPage;
   const labelHeightPx = labelWidthPx / labelRatio;
 
-  // ---------- HANDLER PRINT ----------
+  // ---------- HANDLER PRINT VIA IFRAME ----------
   const handlePrint = () => {
     if (!labelImages || labelImages.length === 0) return;
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      console.error("Impossible d'ouvrir la fenêtre d'impression");
-      return;
-    }
+    // Créer un iframe invisible
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "absolute";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.style.left = "-9999px";
+    iframe.style.top = "-9999px";
+    document.body.appendChild(iframe);
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Étiquettes</title>
-          <style>
-            @page { size: A4; margin: 0; }
-            html, body { margin: 0; padding: 0; background: white; }
-            body {
-              padding-top: ${preset.marginTopCm}cm;
-              padding-left: ${preset.marginLeftCm}cm;
-              display: grid;
-              grid-template-columns: repeat(${preset.cols}, ${
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return;
+
+    // Injection du HTML dans l'iframe
+    doc.open();
+    doc.write(`
+    <html>
+      <head>
+        <title>Étiquettes</title>
+        <style>
+          @page { size: A4; margin: 0; }
+          html, body { margin: 0; padding: 0; background: white; }
+          body {
+            padding-top: ${preset.marginTopCm}cm;
+            padding-left: ${preset.marginLeftCm}cm;
+            display: grid;
+            grid-template-columns: repeat(${preset.cols}, ${
       preset.labelWidthCm
     }cm);
-              grid-auto-rows: ${preset.labelHeightCm}cm;
-              gap: ${preset.gutterYcm}cm ${preset.gutterXcm}cm;
-            }
-            img {
-              width: ${preset.labelWidthCm}cm;
-              height: ${preset.labelHeightCm}cm;
-              object-fit: contain;
-              display: block;
-              margin: 0;
-              padding: 0;
-            }
-          </style>
-        </head>
-        <body>
-          ${labelImages.map((src) => `<img src="${src}" />`).join("")}
-          <script>
-            window.onload = () => {
-              window.print();
-              window.onafterprint = () => window.close();
+            grid-auto-rows: ${preset.labelHeightCm}cm;
+            gap: ${preset.gutterYcm}cm ${preset.gutterXcm}cm;
+          }
+          img {
+            width: ${preset.labelWidthCm}cm;
+            height: ${preset.labelHeightCm}cm;
+            object-fit: contain;
+            display: block;
+            margin: 0;
+            padding: 0;
+          }
+        </style>
+      </head>
+      <body>
+        ${labelImages.map((src) => `<img src="${src}" />`).join("")}
+        <script>
+          window.onload = () => {
+            window.focus();
+            window.print();
+            window.onafterprint = () => {
+              window.close();
             };
-          </script>
-        </body>
-      </html>
-    `);
+          };
+        </script>
+      </body>
+    </html>
+  `);
+    doc.close();
 
-    printWindow.document.close();
+    // Forcer focus et print (sur certains mobiles)
+    iframe.contentWindow?.focus();
+
+    // Supprimer l'iframe après impression
+    const cleanup = () => {
+      document.body.removeChild(iframe);
+      iframe.removeEventListener("load", cleanup);
+    };
+    iframe.addEventListener("load", cleanup);
   };
 
   // ---------- RETURN CONDITIONNEL ----------
