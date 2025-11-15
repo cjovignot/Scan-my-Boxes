@@ -4,12 +4,16 @@ const userSchema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String }, // 👈 plus de "required: true"
-    role: { type: String, enum: ["user", "admin"], default: "user" }, // ✅ ici
-
-    // ✅ Ajout pour Google login
+    password: { type: String },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
     picture: { type: String, required: false },
-    provider: { type: String, required: false }, // ex: "google"
+    provider: { type: String, required: false },
+
+    // 🔹 Nouveau champ
+    printSettings: {
+      type: Object,
+      default: {},
+    },
   },
   { timestamps: true }
 );

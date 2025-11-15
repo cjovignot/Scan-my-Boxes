@@ -105,7 +105,14 @@ router.patch("/:id", async (req, res) => {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    const updatedUser = await updateUserById(id, updates);
+    // On n'autorise maintenant que certains champs + printSettings
+    const allowedUpdates: any = {};
+    const fields = ["name", "picture", "provider", "password", "printSettings"];
+    fields.forEach((key) => {
+      if (updates[key] !== undefined) allowedUpdates[key] = updates[key];
+    });
+
+    const updatedUser = await updateUserById(id, allowedUpdates);
     if (!updatedUser)
       return res.status(404).json({ error: "Utilisateur introuvable." });
 

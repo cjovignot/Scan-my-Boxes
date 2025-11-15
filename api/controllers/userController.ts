@@ -44,6 +44,7 @@ export async function updateUserById(
     picture: string;
     provider: string;
     password: string;
+    printSettings: any; // ← ajouter cette ligne
   }>
 ) {
   await connectDB();

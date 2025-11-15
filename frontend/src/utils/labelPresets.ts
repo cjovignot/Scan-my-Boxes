@@ -188,16 +188,16 @@ export const LABEL_PRESETS: LabelPreset[] = [
   // // PRESET PERSONNALISABLE
   // // ——————————————————————————————————————————
 
-  {
-    id: "custom",
-    name: "Personnalisé",
-    rows: 8,
-    cols: 3,
-    labelWidthCm: 10,
-    labelHeightCm: 5,
-    marginTopCm: 1,
-    marginLeftCm: 1,
-    gutterXcm: 0.5,
-    gutterYcm: 0.5,
-  },
+  // {
+  //   id: "custom",
+  //   name: "Personnalisé",
+  //   rows: 8,
+  //   cols: 3,
+  //   labelWidthCm: 10,
+  //   labelHeightCm: 5,
+  //   marginTopCm: 1,
+  //   marginLeftCm: 1,
+  //   gutterXcm: 0.5,
+  //   gutterYcm: 0.5,
+  // },
 ];

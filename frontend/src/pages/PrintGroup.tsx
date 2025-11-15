@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { usePrint } from "../hooks/usePrint";
 import { useApi } from "../hooks/useApi";
+import { useAuth } from "../contexts/useAuth";
 import {
   X,
   AlertTriangle,
@@ -26,17 +27,52 @@ const PrintGroup = () => {
   const [boxesToPrint, setBoxesToPrint] = useState<Box[]>([]);
   const [startIndex, setStartIndex] = useState(0);
   const [presetId, setPresetId] = useState("microapp‑5057");
-  const preset = LABEL_PRESETS.find((p) => p.id === presetId)!;
+  const [presets, setPresets] = useState([...LABEL_PRESETS]);
 
   const previewRef = useRef<HTMLDivElement>(null);
   const printContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidthPx, setContainerWidthPx] = useState(window.innerWidth);
+
+  const { user } = useAuth()!;
+  const { data: userData } = useApi<{ printSettings?: any }>(
+    user?._id ? `/api/user/${user._id}` : null,
+    { skip: !user?._id }
+  );
 
   const { data, loading, error } = useApi<Box[]>(
     selectedBoxes.length > 0
       ? `/api/boxes?ids=${selectedBoxes.join(",")}`
       : null
   );
+
+  // 🔹 Ajouter le preset custom du user si existant
+  useEffect(() => {
+    if (userData?.printSettings) {
+      const ps = userData.printSettings;
+
+      // Créer un preset complet à partir des valeurs user ou fallback
+      const fullPreset = {
+        id: ps.id || "custom",
+        name: ps.name || "Personnalisé",
+        rows: ps.rows || 1,
+        cols: ps.cols || 1,
+        labelWidthCm: ps.labelWidthCm || 1,
+        labelHeightCm: ps.labelHeightCm || 1,
+        marginTopCm: ps.marginTopCm || 0,
+        marginLeftCm: ps.marginLeftCm || 0,
+        gutterXcm: ps.gutterXcm || 0,
+        gutterYcm: ps.gutterYcm || 0,
+      };
+
+      // Ajouter si non présent
+      if (!presets.find((p) => p.id === fullPreset.id)) {
+        setPresets((prev) => [...prev, fullPreset]);
+      }
+
+      // Sélectionner ce preset
+      setPresetId(fullPreset.id);
+    }
+  }, [userData]);
 
   useEffect(() => {
     if (data) {
@@ -47,7 +83,6 @@ const PrintGroup = () => {
     }
   }, [data]);
 
-  // Adapter largeur du conteneur à la largeur réelle de l'écran
   useEffect(() => {
     const updateWidth = () => {
       const width = previewRef.current?.clientWidth || window.innerWidth;
@@ -79,8 +114,9 @@ const PrintGroup = () => {
       </div>
     );
 
-  const rowsPerPage = preset.rows;
-  const colsPerPage = preset.cols;
+  const preset = presets.find((p) => p.id === presetId) || LABEL_PRESETS[0];
+  const rowsPerPage = (preset as any).rows || 1;
+  const colsPerPage = (preset as any).cols || 1;
   const totalSlots = rowsPerPage * colsPerPage;
   const gapPx = 4;
 
@@ -90,7 +126,8 @@ const PrintGroup = () => {
     if (position < totalSlots) labelsWithOffset[position] = box;
   });
 
-  const labelRatio = preset.labelWidthCm / preset.labelHeightCm;
+  const labelRatio =
+    (preset as any).labelWidthCm / (preset as any).labelHeightCm;
   const labelWidthPx =
     (containerWidthPx - gapPx * (colsPerPage - 1)) / colsPerPage;
   const labelHeightPx = labelWidthPx / labelRatio;
@@ -127,18 +164,20 @@ const PrintGroup = () => {
             @page { size: A4; margin: 0; }
             body {
               margin: 0;
-              padding-top: ${preset.marginTopCm}cm;
-              padding-left: ${preset.marginLeftCm}cm;
+              padding-top: ${(preset as any).marginTopCm}cm;
+              padding-left: ${(preset as any).marginLeftCm}cm;
               display: grid;
-              grid-template-columns: repeat(${preset.cols}, ${
-      preset.labelWidthCm
+              grid-template-columns: repeat(${(preset as any).cols}, ${
+      (preset as any).labelWidthCm
     }cm);
-              grid-auto-rows: ${preset.labelHeightCm}cm;
-              gap: ${preset.gutterYcm}cm ${preset.gutterXcm}cm;
+              grid-auto-rows: ${(preset as any).labelHeightCm}cm;
+              gap: ${(preset as any).gutterYcm}cm ${
+      (preset as any).gutterXcm
+    }cm;
             }
             img {
-              width: ${preset.labelWidthCm}cm;
-              height: ${preset.labelHeightCm}cm;
+              width: ${(preset as any).labelWidthCm}cm;
+              height: ${(preset as any).labelHeightCm}cm;
               object-fit: contain;
             }
           </style>
@@ -158,42 +197,45 @@ const PrintGroup = () => {
   };
 
   return (
-    <div className="p-4" style={{ height: "100vh", overflowY: "auto" }}>
-      <h1 className="mb-4 text-xl font-bold text-yellow-400">
-        Aperçu impression
-      </h1>
+    <>
+      <div className="p-6">
+        <h1 className="mb-4 text-xl font-bold text-yellow-400">
+          Aperçu impression
+        </h1>
 
-      {/* Sélection du preset */}
-      <label className="block mb-1 text-sm font-medium">
-        Format d'étiquettes :
-      </label>
-      <div className="relative flex items-center mb-4">
-        <select
-          value={presetId}
-          onChange={(e) => setPresetId(e.target.value)}
-          className="w-full px-3 py-2 pr-10 text-sm text-white border border-gray-700 rounded-lg appearance-none bg-gray-950 focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
-        >
-          {LABEL_PRESETS.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={16}
-          className="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-[52%]"
-        />
+        {/* Sélection du preset */}
+        <label className="block mb-1 text-sm font-medium">
+          Format d'étiquettes :
+        </label>
+        <div className="relative flex items-center mb-4">
+          <select
+            value={presetId}
+            onChange={(e) => setPresetId(e.target.value)}
+            className="w-full px-3 py-2 pr-10 text-sm text-white border border-gray-700 rounded-lg appearance-none bg-gray-950 focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:bg-gray-700"
+          >
+            {presets.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={16}
+            className="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-[52%]"
+          />
+        </div>
       </div>
 
       {/* Aperçu adaptatif */}
       <div
         ref={previewRef}
         style={{
-          width: "100%",
-          display: "grid",
-          gridTemplateColumns: `repeat(${preset.cols}, 1fr)`,
+          width: "90%",
+          // display: "grid",
+          gridTemplateColumns: `repeat(${colsPerPage}, 1fr)`,
           gap: `${gapPx}px`,
         }}
+        className="grid m-auto"
       >
         {labelsWithOffset.map((box, idx) => {
           const qrSize = labelHeightPx * 0.9;
@@ -317,6 +359,21 @@ const PrintGroup = () => {
         })}
       </div>
 
+      <div className="flex items-center justify-end w-full gap-2 px-6 mt-4">
+        <button
+          onClick={clearSelection}
+          className="px-4 py-2 text-black bg-yellow-400 rounded-lg hover:bg-yellow-500"
+        >
+          <RotateCcw />
+        </button>
+        <button
+          onClick={handlePrint}
+          className="flex gap-2 px-4 py-2 text-black bg-green-400 rounded-lg hover:bg-green-500"
+        >
+          <PrinterCheck /> Imprimer
+        </button>
+      </div>
+
       {/* Rendu invisible pour html-to-image */}
       <div
         ref={printContainerRef}
@@ -416,22 +473,7 @@ const PrintGroup = () => {
           );
         })}
       </div>
-
-      <div className="flex items-center justify-end w-full gap-2 mt-4">
-        <button
-          onClick={clearSelection}
-          className="px-4 py-2 text-black bg-yellow-400 rounded hover:bg-yellow-500"
-        >
-          <RotateCcw />
-        </button>
-        <button
-          onClick={handlePrint}
-          className="flex gap-2 px-4 py-2 text-black bg-green-400 rounded hover:bg-green-500"
-        >
-          <PrinterCheck /> Imprimer
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 
