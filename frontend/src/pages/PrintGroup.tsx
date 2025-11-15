@@ -389,7 +389,7 @@ const PrintGroup = () => {
       </div>
 
       {/* Rendu invisible pour html-to-image */}
-      <div
+      {/* <div
         ref={printContainerRef}
         style={{
           position: "fixed",
@@ -494,7 +494,7 @@ const PrintGroup = () => {
             </div>
           );
         })}
-      </div>
+      </div> */}
     </>
   );
 };
