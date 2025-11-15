@@ -140,7 +140,6 @@ const PrintGroup = () => {
       printContainerRef.current.children
     ) as HTMLDivElement[];
 
-    // Génération PNG pour chaque étiquette
     for (const el of labelElements) {
       try {
         const dataUrl = await htmlToImage.toPng(el, {
@@ -150,11 +149,10 @@ const PrintGroup = () => {
         });
         images.push(dataUrl);
       } catch (err) {
-        console.error("Erreur génération étiquette :", err);
+        console.error("❌ Erreur génération étiquette :", err);
       }
     }
 
-    // Ouverture de la fenêtre d'impression EXACTEMENT comme dans BoxDetails
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
       console.error("Impossible d'ouvrir la fenêtre d'impression");
@@ -167,40 +165,34 @@ const PrintGroup = () => {
         <title>Étiquettes</title>
         <style>
           @page {
-            size: A4;
+            size: ${preset.labelWidthCm}cm ${preset.labelHeightCm}cm;
             margin: 0;
           }
           html, body {
             margin: 0;
             padding: 0;
-            background: white;
+            background: #fff;
           }
           body {
-            padding-top: ${preset.marginTopCm}cm;
-            padding-left: ${preset.marginLeftCm}cm;
-            display: grid;
-            grid-template-columns: repeat(${preset.cols}, ${
-      preset.labelWidthCm
-    }cm);
-            grid-auto-rows: ${preset.labelHeightCm}cm;
-            gap: ${preset.gutterYcm}cm ${preset.gutterXcm}cm;
+            display: flex;
+            flex-direction: column;
+            gap: ${preset.gutterYcm}cm;
           }
           img {
             width: ${preset.labelWidthCm}cm;
             height: ${preset.labelHeightCm}cm;
             object-fit: contain;
             display: block;
-            margin: 0;
-            padding: 0;
+            margin: 0 auto;
           }
         </style>
       </head>
       <body>
         ${images.map((src) => `<img src="${src}" />`).join("")}
         <script>
-          window.onload = () => {
-            window.print();
-            window.onafterprint = () => window.close();
+          window.onload = () => { 
+            window.print(); 
+            window.onafterprint = () => window.close(); 
           };
         </script>
       </body>
