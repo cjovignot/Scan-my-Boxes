@@ -117,43 +117,43 @@ const BoxDetails = () => {
   }, [box]);
 
   // Impression
-  const handlePrint = () => {
-    if (!labelImage) return;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+  // const handlePrint = () => {
+  //   if (!labelImage) return;
+  //   const printWindow = window.open("", "_blank");
+  //   if (!printWindow) return;
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Étiquette ${box?.number}</title>
-          <style>
-            @page {
-              size: 10cm 4cm;
-              margin: 0;
-            }
-            html, body {
-              margin: 0;
-              padding: 0;
-            }
-            img {
-              width: 10cm;
-              height: 4cm;
-              object-fit: contain;
-              display: block;
-            }
-          </style>
-        </head>
-        <body>
-          <img src="${labelImage}" alt="Étiquette" />
-          <script>
-            window.onload = () => { window.print(); window.onafterprint = () => window.close(); };
-          </script>
-        </body>
-      </html>
-    `);
+  //   printWindow.document.write(`
+  //     <html>
+  //       <head>
+  //         <title>Étiquette ${box?.number}</title>
+  //         <style>
+  //           @page {
+  //             size: 10cm 4cm;
+  //             margin: 0;
+  //           }
+  //           html, body {
+  //             margin: 0;
+  //             padding: 0;
+  //           }
+  //           img {
+  //             width: 10cm;
+  //             height: 4cm;
+  //             object-fit: contain;
+  //             display: block;
+  //           }
+  //         </style>
+  //       </head>
+  //       <body>
+  //         <img src="${labelImage}" alt="Étiquette" />
+  //         <script>
+  //           window.onload = () => { window.print(); window.onafterprint = () => window.close(); };
+  //         </script>
+  //       </body>
+  //     </html>
+  //   `);
 
-    printWindow.document.close();
-  };
+  //   printWindow.document.close();
+  // };
 
   if (loading)
     return (
@@ -320,13 +320,13 @@ const BoxDetails = () => {
             )}
 
             <div className="flex justify-center gap-4 mt-6">
-              <button
+              {/* <button
                 onClick={handlePrint}
                 disabled={!labelImage}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-yellow-400 rounded-lg hover:bg-yellow-500 disabled:opacity-50"
               >
                 <Printer size={20} />
-              </button>
+              </button> */}
               <button
                 className={`flex justify-center items-center gap-1 px-2 py-2 text-sm font-medium border-2 rounded-lg hover:bg-yellow-500 disabled:opacity-50
     ${
