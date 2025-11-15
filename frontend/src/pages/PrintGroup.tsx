@@ -135,75 +135,37 @@ const PrintGroup = () => {
   const handlePrint = async () => {
     if (!printContainerRef.current) return;
 
-    // ⚡ ouvrir la fenêtre immédiatement
-    const printWindow = window.open("", "_blank");
+    // ouvrir la nouvelle page (AVANT async)
+    const printWindow = window.open("/print.html", "_blank");
     if (!printWindow) return;
 
-    // ⚡ écrire une page minimaliste AVANT les async
-    printWindow.document.write(`
-    <html>
-      <head>
-        <title>Impression…</title>
-        <style>
-          @page { margin: 0; }
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: ${preset.gutterYcm}cm;
-          }
-          img {
-            width: ${preset.labelWidthCm}cm;
-            height: ${preset.labelHeightCm}cm;
-            object-fit: contain;
-          }
-        </style>
-      </head>
-      <body>
-        <p id="status">Génération en cours…</p>
-        <div id="labels"></div>
+    // attendre que la fenêtre charge son script
+    const waitLoaded = () =>
+      new Promise<void>((resolve) => {
+        const timer = setInterval(() => {
+          try {
+            if (printWindow.document.readyState === "complete") {
+              clearInterval(timer);
+              resolve();
+            }
+          } catch {}
+        }, 50);
+      });
 
-        <script>
-          window.addEventListener("message", (event) => {
-            const images = event.data;
-            const container = document.getElementById("labels");
-            const status = document.getElementById("status");
-            status.remove();
+    await waitLoaded();
 
-            images.forEach(src => {
-              const img = document.createElement("img");
-              img.src = src;
-              container.appendChild(img);
-            });
-
-            window.print();
-            window.onafterprint = () => window.close();
-          });
-        </script>
-      </body>
-    </html>
-  `);
-
-    printWindow.document.close();
-
-    // 🔹 Génération des PNG (asynchrone)
+    // générer les images
     const images: string[] = [];
-    const elements = Array.from(
-      printContainerRef.current.children
-    ) as HTMLDivElement[];
+    const labels = [...printContainerRef.current.children] as HTMLDivElement[];
 
-    for (const el of elements) {
-      const dataUrl = await htmlToImage.toPng(el, {
-        backgroundColor: "#fff",
+    for (const label of labels) {
+      const dataUrl = await htmlToImage.toPng(label, {
         pixelRatio: 2,
+        backgroundColor: "#ffffff",
       });
       images.push(dataUrl);
     }
 
-    // 🔹 envoyer les images à la fenêtre
     printWindow.postMessage(images, "*");
   };
 
