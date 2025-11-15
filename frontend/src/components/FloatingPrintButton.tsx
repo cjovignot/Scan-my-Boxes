@@ -6,21 +6,27 @@ const FloatingPrintButton = () => {
   const { selectedBoxes } = usePrint();
   const navigate = useNavigate();
 
-  if (selectedBoxes.length === 0) return null; // 🚀 n'affiche rien si vide
+  if (selectedBoxes.length === 0) return null;
 
   return (
-    <button
-      onClick={() => navigate("/printgroup")}
-      className="
-        fixed top-4 right-4 z-[200]
-        bg-yellow-400 text-black shadow-xl rounded-full
-        px-4 py-2 flex items-center gap-2 font-semibold
-        hover:bg-yellow-500 transition-all
-      "
+    <div
+      style={{
+        position: "fixed",
+        top: 16,
+        right: 16,
+        zIndex: 200,
+        pointerEvents: "none", // le container ignore les clics
+      }}
     >
-      <Printer size={18} />
-      {selectedBoxes.length}
-    </button>
+      <button
+        onClick={() => navigate("/printgroup")}
+        style={{ pointerEvents: "auto" }} // le bouton capte les clics
+        className="flex items-center gap-2 px-4 py-2 font-semibold text-black transition-all bg-yellow-400 rounded-full shadow-xl  hover:bg-yellow-500"
+      >
+        <Printer size={18} />
+        {selectedBoxes.length}
+      </button>
+    </div>
   );
 };
 
