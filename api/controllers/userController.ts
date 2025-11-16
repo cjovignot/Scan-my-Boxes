@@ -35,22 +35,41 @@ export async function createUser(data: {
 }
 
 // ====================================
-// 🔹 Met à jour un utilisateur par ID (sans écraser le rôle)
+// 🔹 Met à jour un utilisateur par ID (admin)
 // ====================================
 export async function updateUserById(
   id: string,
   updates: Partial<{
     name: string;
+    email: string;
+    role: string;
     picture: string;
     provider: string;
     password: string;
-    printSettings: any; // ← ajouter cette ligne
+    printSettings: any;
   }>
 ) {
   await connectDB();
 
   const user = await User.findById(id);
   if (!user) return null;
+
+  // 💡 Si l'admin laisse password vide → on n'écrase pas
+  if (!updates.password) {
+    delete updates.password;
+  }
+
+  // ⚠️ IMPORTANT : si tu autorises la modification d'email,
+  // assure-toi de ne pas avoir des doublons
+  if (updates.email) {
+    const emailExists = await User.findOne({
+      email: updates.email,
+      _id: { $ne: id },
+    });
+    if (emailExists) {
+      throw new Error("Email déjà utilisé");
+    }
+  }
 
   await User.updateOne(
     { _id: id },

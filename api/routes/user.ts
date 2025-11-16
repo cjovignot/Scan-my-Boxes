@@ -107,7 +107,15 @@ router.patch("/:id", async (req, res) => {
 
     // On n'autorise maintenant que certains champs + printSettings
     const allowedUpdates: any = {};
-    const fields = ["name", "picture", "provider", "password", "printSettings"];
+    const fields = [
+  "name",
+  "email",
+  "role",
+  "picture",
+  "provider",
+  "password",
+  "printSettings",
+];
     fields.forEach((key) => {
       if (updates[key] !== undefined) allowedUpdates[key] = updates[key];
     });

@@ -9,7 +9,7 @@ type EditUserModalProps = {
   onSuccess?: () => void;
 };
 
-// ✅ Simple toast temporaire
+// Toast simple
 const Toast = ({
   message,
   onClose,
@@ -39,17 +39,18 @@ export const EditUserModal = ({
     name: "",
     email: "",
     password: "",
-    role: "user", // ✅ ajout du champ rôle
+    role: "user",
   });
+
   const [toast, setToast] = useState<string | null>(null);
 
-  // ✅ Charger automatiquement l’utilisateur via useApi
+  // Fetch user (préremplir le formulaire)
   const { data: user } = useApi<{
     _id: string;
     name: string;
     email: string;
     role: string;
-  }>(`/api/user/${userId}`, { skip: !userId }); // ✅ utilisation directe de skip
+  }>(`/api/user/${userId}`, { skip: !userId });
 
   useEffect(() => {
     if (user) {
@@ -62,22 +63,22 @@ export const EditUserModal = ({
     }
   }, [user]);
 
-  // ✅ Mutation mise à jour avec useApiMutation
+  // PATCH user
   const { mutate, loading, error } = useApiMutation<
     { message: string },
     Partial<typeof formData>
-  >(`/api/user/${userId}`, "PATCH", {
+  >("", "PATCH", {
     onSuccess: (data) => {
       setToast(data.message || "Utilisateur mis à jour !");
       onSuccess?.();
       onClose();
     },
     onError: (err: any) => {
-      const msg =
+      setToast(
         err?.response?.data?.error ||
-        err?.message ||
-        "Erreur lors de la mise à jour";
-      setToast(msg);
+          err?.message ||
+          "Erreur lors de la mise à jour"
+      );
     },
   });
 
@@ -93,24 +94,22 @@ export const EditUserModal = ({
     e.preventDefault();
     if (!userId) return setToast("ID utilisateur manquant");
 
-    try {
-      await mutate(formData); // ✅ appel du hook mutation
-    } catch {
-      /* l'erreur est déjà gérée via onError */
-    }
+    await mutate(formData, { url: `/api/user/${userId}` });
   };
 
   return (
     <>
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
-      <div className="fixed inset-0 flex items-center justify-center z-999 bg-black/60">
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
         <div className="w-full max-w-md p-6 text-white shadow-lg bg-gray-950 rounded-xl">
           <h2 className="mb-4 text-lg font-semibold text-yellow-400">
             Modifier l’utilisateur
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* Nom */}
             <div>
               <label className="block mb-1 text-sm">Nom</label>
               <input
@@ -121,6 +120,7 @@ export const EditUserModal = ({
               />
             </div>
 
+            {/* Email */}
             <div>
               <label className="block mb-1 text-sm">Email</label>
               <input
@@ -131,6 +131,7 @@ export const EditUserModal = ({
               />
             </div>
 
+            {/* Mot de passe */}
             <div>
               <label className="block mb-1 text-sm">
                 Nouveau mot de passe (optionnel)
@@ -144,7 +145,7 @@ export const EditUserModal = ({
               />
             </div>
 
-            {/* ✅ Sélecteur de rôle */}
+            {/* Rôle */}
             <div>
               <label className="block mb-1 text-sm">Rôle</label>
               <select
@@ -160,6 +161,7 @@ export const EditUserModal = ({
 
             {error && <p className="text-sm text-red-400">{error}</p>}
 
+            {/* Boutons */}
             <div className="flex justify-end gap-2">
               <button
                 type="button"

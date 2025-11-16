@@ -9,44 +9,67 @@ interface User {
   name: string;
   email: string;
   role: string;
+  provider?: string;
+  picture?: string;
   createdAt?: string;
 }
 
 const UserInfos = () => {
-  const { data: users, loading, error, refetch } = useApi<User[]>("/api/user");
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [search, setSearch] = useState(""); // 🔍 barre de recherche
+  const {
+    data: users,
+    loading,
+    error,
+    refetch,
+  } = useApi<User[]>("/api/user");
 
-  // ✅ Mutation pour la suppression d’un utilisateur
-  const { mutate: deleteUser, loading: deleting } = useApiMutation<
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // ============================
+  // 🔥 Mutation : suppression user
+  // ============================
+  const { mutate: deleteUser } = useApiMutation<
     { message: string },
     undefined
   >("/api/user", "DELETE", {
-    onSuccess: () => refetch(),
-    onError: () => alert("❌ Erreur lors de la suppression."),
+    onSuccess: () => {
+      setDeletingId(null);
+      refetch();
+    },
+    onError: () => {
+      alert("❌ Erreur lors de la suppression.");
+      setDeletingId(null);
+    },
   });
 
-  const handleEdit = (userId: string) => setSelectedUserId(userId);
+  const handleEdit = (id: string) => setSelectedUserId(id);
   const closeModal = () => setSelectedUserId(null);
 
   const handleDelete = async (id: string) => {
     if (!confirm("⚠️ Es-tu sûr de vouloir supprimer cet utilisateur ?")) return;
 
+    setDeletingId(id);
+
     try {
       await deleteUser(undefined, { url: `/api/user/${id}` });
     } catch (err) {
       console.error("Erreur suppression utilisateur :", err);
+      setDeletingId(null);
     }
   };
 
-  // ✅ Filtrage performant avec useMemo
+  // ============================
+  // 🔍 Filtrage performant
+  // ============================
   const filteredUsers = useMemo(() => {
-    const term = search.toLowerCase();
+    const t = search.toLowerCase();
     return (
       users?.filter(
         (u) =>
-          u.email.toLowerCase().includes(term) ||
-          u.name.toLowerCase().includes(term)
+          u.email.toLowerCase().includes(t) ||
+          u.name.toLowerCase().includes(t) ||
+          u.role.toLowerCase().includes(t)
       ) ?? []
     );
   }, [users, search]);
@@ -60,7 +83,7 @@ const UserInfos = () => {
       {/* 🔍 Barre de recherche */}
       <input
         type="text"
-        placeholder="Rechercher par email ou nom..."
+        placeholder="Rechercher par email, nom ou rôle..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="w-full px-3 py-2 mb-4 text-sm text-white bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
@@ -81,10 +104,20 @@ const UserInfos = () => {
               className="flex items-center justify-between py-3"
             >
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-yellow-400">{user.name}</p>
-                <p className="text-sm text-gray-400 truncate">{user.email}</p>
+                <p className="font-medium text-yellow-400 text-sm">
+                  {user.name}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                <p className="text-xs text-blue-400 mt-1">
+                  Rôle : <span className="text-gray-300">{user.role}</span>
+                </p>
+                {user.provider && (
+                  <p className="text-[10px] text-gray-500">
+                    Provider : {user.provider}
+                  </p>
+                )}
                 {user.createdAt && (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-[10px] text-gray-500">
                     Créé le{" "}
                     {new Date(user.createdAt).toLocaleDateString("fr-FR")}
                   </p>
@@ -92,23 +125,25 @@ const UserInfos = () => {
               </div>
 
               <div className="flex flex-col gap-2">
+                {/* bouton modifier */}
                 <button
                   onClick={() => handleEdit(user._id)}
-                  className="px-3 py-1 text-sm text-black bg-yellow-500 rounded hover:bg-yellow-400"
+                  className="px-3 py-1 text-xs text-black bg-yellow-500 rounded hover:bg-yellow-400"
                 >
                   Modifier
                 </button>
 
+                {/* bouton supprimer */}
                 <button
                   onClick={() => handleDelete(user._id)}
-                  disabled={deleting}
-                  className={`px-3 py-1 text-sm text-white rounded ${
-                    deleting
+                  disabled={deletingId === user._id}
+                  className={`px-3 py-1 text-xs text-white rounded ${
+                    deletingId === user._id
                       ? "bg-red-800 cursor-not-allowed"
                       : "bg-red-600 hover:bg-red-500"
                   }`}
                 >
-                  {deleting ? "Suppression..." : "Supprimer"}
+                  {deletingId === user._id ? "Suppression..." : "Supprimer"}
                 </button>
               </div>
             </li>
