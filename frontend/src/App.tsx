@@ -63,16 +63,14 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/success" element={<AuthSuccess />} />
-
-            {/* Routes protégées */}
             <Route
               path="/"
               element={
-                <ProtectedRoute>
                   <Home />
-                </ProtectedRoute>
               }
             />
+
+            {/* Routes protégées */}
             <Route
               path="/profile"
               element={
