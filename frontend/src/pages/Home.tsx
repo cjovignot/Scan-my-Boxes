@@ -104,7 +104,7 @@ const Dashboard = () => {
       label: "Moy./entrepôt",
       value: avgBoxesPerWarehouse.toFixed(1),
       description: "Moyenne de boîtes par entrepôt",
-      icon: Boxes,
+      icon: Ruler,
     },
     {
       id: "boxes",
