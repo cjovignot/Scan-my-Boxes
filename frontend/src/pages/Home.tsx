@@ -191,7 +191,7 @@ const Dashboard = () => {
               className="flex flex-col items-start justify-between p-4 transition-all duration-200 bg-gray-800 border border-gray-700 rounded-2xl hover:bg-gray-700 hover:scale-[1.02]"
             >
               <div className="flex flex-col items-start w-full">
-                <Icon size={26} strokeSize={0.75} className="text-yellow-400" />
+                <Icon size={26} strokeWidth={0.75} className="text-yellow-400" />
                 <h2 className="mt-2 font-semibold text-left text-yellow-400 text-md">
                   {label}
                 </h2>
