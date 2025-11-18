@@ -188,34 +188,38 @@ const Dashboard = () => {
   {stats.map(({ id, label, value, description, icon: Icon }) => (
     <motion.div
       key={id}
-      whileHover={{ scale: 1.03, y: -2 }}
-      transition={{ type: "spring", stiffness: 230, damping: 18 }}
-      className="p-5 rounded-2xl bg-gray-900 border border-gray-800 
-                 hover:border-yellow-400/40 shadow-lg hover:shadow-xl 
-                 transition-all duration-300"
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 180, damping: 15 }}
+      className="
+        p-6 rounded-3xl relative bg-gray-900
+        shadow-[8px_8px_20px_#0a0a0a,_-8px_-8px_20px_#1a1a1a]
+        hover:shadow-[4px_4px_12px_#0a0a0a,_-4px_-4px_12px_#1a1a1a]
+        transition-all duration-300
+      "
     >
-      {/* ICON BADGE */}
-      <div className="flex items-center justify-center w-12 h-12 rounded-xl 
-                      bg-gray-800 border border-gray-700 
-                      group-hover:border-yellow-400 transition-all duration-300">
-        <Icon
-          size={24}
-          className="text-yellow-400 group-hover:text-yellow-300 transition-colors"
-        />
+      {/* Icône dans un cercle néomorphique */}
+      <div
+        className="
+          flex items-center justify-center w-14 h-14 rounded-2xl
+          bg-gray-900
+          shadow-[5px_5px_12px_#0a0a0a,_-5px_-5px_12px_#1a1a1a]
+        "
+      >
+        <Icon size={32} strokeWidth={1} className="text-yellow-400" />
       </div>
 
-      {/* LABEL */}
-      <h2 className="mt-4 text-sm font-semibold text-gray-300 uppercase tracking-wide">
+      {/* Label */}
+      <h2 className="mt-4 text-sm font-semibold text-yellow-400/90 tracking-wide">
         {label}
       </h2>
 
-      {/* MAIN VALUE */}
-      <p className="mt-1 text-3xl font-bold text-white">
+      {/* Valeur */}
+      <p className="mt-1 text-3xl font-bold text-white leading-tight">
         {value}
       </p>
 
-      {/* DESCRIPTION */}
-      <p className="mt-2 text-xs text-gray-500">
+      {/* Description */}
+      <p className="mt-2 text-xs text-gray-400 leading-tight">
         {description}
       </p>
     </motion.div>
