@@ -188,38 +188,41 @@ const Dashboard = () => {
   {stats.map(({ id, label, value, description, icon: Icon }) => (
     <motion.div
       key={id}
-      whileHover={{ scale: 1.03 }}
-      transition={{ type: "spring", stiffness: 180, damping: 15 }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.02 }}
       className="
-        p-6 rounded-3xl relative bg-gray-900
-        shadow-[8px_8px_20px_#0a0a0a,_-8px_-8px_20px_#1a1a1a]
-        hover:shadow-[4px_4px_12px_#0a0a0a,_-4px_-4px_12px_#1a1a1a]
-        transition-all duration-300
+        p-5 rounded-2xl bg-gray-900 border border-gray-800
+        shadow-lg hover:shadow-xl hover:border-gray-700
+        transition-all duration-300 cursor-pointer
+        flex flex-col justify-between
       "
     >
-      {/* Icône dans un cercle néomorphique */}
-      <div
-        className="
-          flex items-center justify-center w-14 h-14 rounded-2xl
-          bg-gray-900
-          shadow-[5px_5px_12px_#0a0a0a,_-5px_-5px_12px_#1a1a1a]
-        "
-      >
-        <Icon size={32} strokeWidth={1} className="text-yellow-400" />
+      {/* Section icône + label */}
+      <div className="flex items-center gap-4">
+        {/* Icône dans une capsule moderne */}
+        <div
+          className="w-12 h-12 flex items-center justify-center rounded-xl
+          bg-gray-800 border border-gray-700
+          shadow-inner"
+        >
+          <Icon size={26} strokeWidth={1.3} className="text-yellow-400" />
+        </div>
+
+        {/* Label */}
+        <div>
+          <h2 className="text-sm font-medium text-gray-300">{label}</h2>
+        </div>
       </div>
 
-      {/* Label */}
-      <h2 className="mt-4 text-sm font-semibold text-yellow-400/90 tracking-wide">
-        {label}
-      </h2>
-
-      {/* Valeur */}
-      <p className="mt-1 text-3xl font-bold text-white leading-tight">
+      {/* Valeur principale */}
+      <p className="mt-4 text-3xl font-semibold text-white tracking-tight">
         {value}
       </p>
 
       {/* Description */}
-      <p className="mt-2 text-xs text-gray-400 leading-tight">
+      <p className="mt-2 text-xs text-gray-500">
         {description}
       </p>
     </motion.div>
