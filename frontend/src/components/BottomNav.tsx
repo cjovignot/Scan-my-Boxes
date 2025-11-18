@@ -8,6 +8,7 @@ import {
   KeyRound,
   Boxes,
   Box,
+  Warehouse
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -27,7 +28,7 @@ const BottomNav = () => {
     },
     {
       to: "/storages",
-      icon: <Boxes size={22} strokeWidth={0.75} />,
+      icon: <Warehouse size={22} strokeWidth={0.75} />,
       label: "Entrepôts",
     },
   ];
