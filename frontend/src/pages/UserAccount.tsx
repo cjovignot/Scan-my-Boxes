@@ -9,6 +9,7 @@ import { useApiMutation } from "../hooks/useApiMutation";
 const UserAccount = () => {
   const { user, setUser, logout } = useAuth()!;
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -16,48 +17,57 @@ const UserAccount = () => {
 
   useEffect(() => {
     if (!user) navigate("/login");
-  }, [user, navigate]);
+  }, [user]);
 
-  // 🛠 Hook mutation PUT pour update user
+  // ==============================
+  // 🔹 PATCH - Update User
+  // ==============================
   const { mutate: updateUser, loading: updating } = useApiMutation(
     `/api/user/${user?._id}`,
     "PATCH",
     {
       onSuccess: (res) => {
-        // ✅ extraire seulement le user
         setUser(res.user ?? res);
         alert("✅ Profil mis à jour !");
         navigate("/profile");
       },
-      onError: (err) => {
-        console.error("Erreur mise à jour :", err);
-        alert("Erreur lors de la mise à jour du profil.");
+      onError: () => {
+        alert("Erreur lors de la mise à jour.");
       },
     }
   );
 
-  const handleDeleteAccount = async () => {
-    if (!user?._id) return alert("Utilisateur introuvable.");
-    if (
-      !confirm(
-        "❌ Es-tu sûr de vouloir supprimer ton compte ? Cette action est irréversible."
-      )
-    )
-      return;
-
-    try {
-      await fetch(`/api/user/${user._id}`, { method: "DELETE" });
-      logout();
-      alert("Compte supprimé avec succès.");
-      navigate("/register");
-    } catch (err) {
-      console.error("Erreur suppression :", err);
-      alert("Erreur lors de la suppression du compte.");
+  // ==============================
+  // 🔹 DELETE - Supprimer User
+  // ==============================
+  const { mutate: deleteUser, loading: deleting } = useApiMutation(
+    `/api/user/${user?._id}`,
+    "DELETE",
+    {
+      onSuccess: () => {
+        logout();
+        alert("🗑️ Compte supprimé !");
+        navigate("/register");
+      },
+      onError: () => {
+        alert("❌ Erreur lors de la suppression du compte.");
+      },
     }
+  );
+
+  const handleDeleteAccount = () => {
+    if (!user?._id) return alert("Utilisateur introuvable.");
+
+    const ok = confirm(
+      "❌ Es-tu sûr de vouloir supprimer ton compte ? Cette action est irréversible."
+    );
+    if (!ok) return;
+
+    deleteUser();
   };
 
-  const handleSave = async () => {
-    await updateUser(formData);
+  const handleSave = () => {
+    updateUser(formData);
   };
 
   if (!user) return null;
@@ -89,7 +99,7 @@ const UserAccount = () => {
             )}
           </div>
 
-          {/* Formulaire */}
+          {/* Form */}
           <div className="flex flex-col gap-3 mt-8 text-left">
             <label className="text-sm text-gray-400">Nom</label>
             <input
@@ -126,10 +136,11 @@ const UserAccount = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleDeleteAccount}
-              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-400 border border-red-600 rounded-full hover:bg-red-600/20"
+              disabled={deleting}
+              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-400 border border-red-600 rounded-full hover:bg-red-600/20 disabled:opacity-50"
             >
               <Trash2 size={16} />
-              Supprimer mon compte
+              {deleting ? "Suppression..." : "Supprimer mon compte"}
             </motion.button>
           </div>
         </motion.div>
