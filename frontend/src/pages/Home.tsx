@@ -184,23 +184,44 @@ const Dashboard = () => {
           </h1>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-3 mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {stats.map(({ id, label, value, description, icon: Icon }) => (
-            <div
-              key={id}
-              className="flex flex-col items-start justify-between p-4 transition-all duration-200 bg-gray-800 border border-gray-700 rounded-2xl hover:bg-gray-700 hover:scale-[1.02]"
-            >
-              <div className="flex flex-col items-start w-full">
-                <Icon size={26} strokeWidth={0.75} className="text-yellow-400" />
-                <h2 className="mt-2 text-left text-yellow-400 text-md">
-                  {label}
-                </h2>
-              </div>
-              <p className="mt-1 text-lg font-bold break-words">{value}</p>
-              <p className="mt-1 text-xs text-gray-400">{description}</p>
-            </div>
-          ))}
-        </div>
+<div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  {stats.map(({ id, label, value, description, icon: Icon }) => (
+    <motion.div
+      key={id}
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+      className="relative overflow-hidden p-5 rounded-2xl bg-gray-900/60 backdrop-blur-lg 
+                 border border-gray-700/60 shadow-xl hover:shadow-yellow-500/10
+                 transition-all duration-300 group"
+    >
+      {/* Glow lumineux */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-10
+                      bg-gradient-to-br from-yellow-400 to-transparent transition-opacity duration-300"></div>
+
+      {/* Icône dans un cercle stylé */}
+      <div className="flex items-center justify-center w-12 h-12 rounded-xl 
+                      bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 
+                      border border-yellow-500/30 shadow-inner">
+        <Icon size={26} strokeWidth={1} className="text-yellow-400" />
+      </div>
+
+      {/* Label */}
+      <h2 className="mt-4 text-sm font-semibold tracking-wide text-yellow-400/90">
+        {label}
+      </h2>
+
+      {/* Valeur */}
+      <p className="mt-1 text-2xl font-bold text-white">
+        {value}
+      </p>
+
+      {/* Description */}
+      <p className="mt-2 text-xs text-gray-400 leading-tight">
+        {description}
+      </p>
+    </motion.div>
+  ))}
+</div>
 
         <p className="mt-10 text-sm text-center text-gray-500">
           Aperçu global de votre activité.
