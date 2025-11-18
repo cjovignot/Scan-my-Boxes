@@ -184,39 +184,45 @@ const Dashboard = () => {
           </h1>
         </motion.div>
 
-<div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+<div className="grid grid-cols-1 gap-5 mt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
   {stats.map(({ id, label, value, description, icon: Icon }) => (
     <motion.div
       key={id}
-      whileHover={{ scale: 1.03 }}
-      transition={{ type: "spring", stiffness: 200, damping: 15 }}
-      className="relative overflow-hidden p-5 rounded-2xl bg-gray-900/60 backdrop-blur-lg 
-                 border border-gray-700/60 shadow-xl hover:shadow-yellow-500/10
-                 transition-all duration-300 group"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.04 }}
+      transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
+      className="relative p-5 rounded-3xl border border-white/10 backdrop-blur-xl
+                 bg-white/5 shadow-[0_0_25px_-5px_rgba(255,255,255,0.2)]
+                 hover:shadow-[0_0_40px_-2px_rgba(255,255,255,0.25)]
+                 transition-all duration-300 overflow-hidden group"
     >
-      {/* Glow lumineux */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-10
-                      bg-gradient-to-br from-yellow-400 to-transparent transition-opacity duration-300"></div>
 
-      {/* Icône dans un cercle stylé */}
-      <div className="flex items-center justify-center w-12 h-12 rounded-xl 
-                      bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 
-                      border border-yellow-500/30 shadow-inner">
-        <Icon size={26} strokeWidth={1} className="text-yellow-400" />
+      {/* Halo lumineux / Vision Pro glow */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-20
+                      bg-gradient-to-br from-yellow-300/30 to-yellow-600/30
+                      blur-2xl transition-opacity duration-500"></div>
+
+      {/* Icône dans un cercle en verre */}
+      <div className="flex items-center justify-center w-14 h-14 rounded-2xl 
+                      bg-white/10 backdrop-blur-xl
+                      border border-white/20
+                      shadow-inner shadow-white/10">
+        <Icon size={30} className="text-yellow-300 drop-shadow-[0_0_6px_rgba(255,255,0,0.4)]" />
       </div>
 
       {/* Label */}
-      <h2 className="mt-4 text-sm font-semibold tracking-wide text-yellow-400/90">
+      <h2 className="mt-4 text-sm font-semibold tracking-wide text-white/80">
         {label}
       </h2>
 
-      {/* Valeur */}
-      <p className="mt-1 text-2xl font-bold text-white">
+      {/* Valeur principale */}
+      <p className="mt-2 text-3xl font-bold text-white drop-shadow-[0_2px_6px_rgba(255,255,255,0.2)]">
         {value}
       </p>
 
       {/* Description */}
-      <p className="mt-2 text-xs text-gray-400 leading-tight">
+      <p className="mt-2 text-xs text-gray-300">
         {description}
       </p>
     </motion.div>
