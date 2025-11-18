@@ -211,9 +211,9 @@ const Dashboard = () => {
         </div>
 
         {/* Label */}
-        <div>
+        {/* <div>
           <h2 className="text-sm font-medium text-gray-300">{label}</h2>
-        </div>
+        </div> */}
       </div>
 
       {/* Valeur principale */}
