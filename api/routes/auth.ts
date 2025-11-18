@@ -206,14 +206,19 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const bcrypt = await import("bcryptjs");
     if (!user.password) {
       return res.status(400).json({
         error: "Ce compte ne possède pas de mot de passe local.",
       });
     }
 
+    const bcrypt = await import("bcryptjs");
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    // 🚨 AJOUT MANQUANT : VÉRIFIER LE MOT DE PASSE
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Mot de passe incorrect." });
+    }
 
     const jwt = await import("jsonwebtoken");
     const token = jwt.sign(
@@ -222,7 +227,6 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // ✅ Réponse JSON au lieu d'une redirection
     res.status(200).json({
       message: "Connexion réussie",
       token,
