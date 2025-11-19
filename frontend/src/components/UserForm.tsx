@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useApiMutation } from "../hooks/useApiMutation";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/useAuth";
 
 const UserForm = () => {
+  const { setUser } = useAuth();
+
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signup" | "login">("login");
   const [formData, setFormData] = useState({
@@ -26,12 +29,9 @@ const UserForm = () => {
     { email: string; password: string }
   >("/api/auth/login", "POST", {
     onSuccess: (data) => {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      localStorage.setItem("token", data.token); // OK car le token doit être hors React
       setFormData({ name: "", email: "", password: "" });
-      window.dispatchEvent(new Event("userLogin"));
-
-      // ✅ Redirection avec l’email dans l’URL
       navigate(`/auth/success?email=${encodeURIComponent(data.user.email)}`);
     },
     onError: (err) => console.error("Erreur connexion :", err),

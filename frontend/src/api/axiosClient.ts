@@ -1,4 +1,3 @@
-// frontend/src/api/axiosClient.ts
 import axios from "axios";
 
 const axiosClient = axios.create({
@@ -7,6 +6,15 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+// ✅ Intercepteur pour attacher automatiquement le token
+axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default axiosClient;
