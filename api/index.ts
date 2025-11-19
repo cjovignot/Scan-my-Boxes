@@ -15,7 +15,6 @@ dotenv.config();
 
 const app = express();
 
-// test
 
 // ============================
 // 🌐 CORS configuration

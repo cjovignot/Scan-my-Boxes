@@ -30,6 +30,8 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
+// commit
+
 function App() {
   const location = useLocation();
 
