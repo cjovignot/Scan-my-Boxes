@@ -11,7 +11,6 @@ interface GoogleLoginResponse {
 interface GoogleLoginPayload {
   token: string;
 }
-// commit
 
 const Login = () => {
   const navigate = useNavigate();
