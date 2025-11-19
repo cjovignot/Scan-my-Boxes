@@ -22,6 +22,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://scan-my-boxes.vercel.app",
+  "https://preview-scan-my-boxes.vercel.app",
 ];
 
 app.use((req, res, next) => {
