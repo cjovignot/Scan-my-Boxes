@@ -1,6 +1,16 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, type Document } from "mongoose";
 
-const userSchema = new Schema(
+export interface UserDocument extends Document {
+  name: string;
+  email: string;
+  password?: string;
+  role: "user" | "admin";
+  picture?: string;
+  provider?: string;
+  printSettings?: Record<string, any>;
+}
+
+const userSchema = new Schema<UserDocument>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -9,7 +19,6 @@ const userSchema = new Schema(
     picture: { type: String, required: false },
     provider: { type: String, required: false },
 
-    // 🔹 Nouveau champ
     printSettings: {
       type: Object,
       default: {},
@@ -18,4 +27,4 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-export const User = model("User", userSchema);
+export const User = model<UserDocument>("User", userSchema);

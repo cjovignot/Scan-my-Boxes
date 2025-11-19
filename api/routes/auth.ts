@@ -6,6 +6,10 @@ import { Router } from "express";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import path from "path";
+import cookieParser from "cookie-parser";
+import { authLimiter } from "../middlewares/authLimiter";
+import { safeUser } from "../utils/safeUser";
+import { z } from "zod";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import {
@@ -163,13 +167,14 @@ router.get("/google-callback", async (req, res) => {
 
     let user = await findUserByEmail(email);
     if (!user) {
-      user = await createUser({
-        name,
-        email,
-        picture,
-        provider: "google",
-        password: "-",
-      });
+      if (!user) {
+        user = await createUser({
+          name,
+          email,
+          picture,
+          provider: "google",
+        });
+      }
     }
 
     const frontendUrl =
@@ -187,64 +192,67 @@ router.get("/google-callback", async (req, res) => {
 // ============================
 // 🔹 POST /api/auth/login
 // ============================
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email et mot de passe requis." });
-  }
-
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+router.post("/login", authLimiter, async (req, res) => {
   try {
+    const { email, password } = loginSchema.parse(req.body);
+
     const user = await findUserByEmail(email);
     if (!user) {
-      return res.status(404).json({ error: "Utilisateur introuvable." });
+      return res
+        .status(401)
+        .json({ status: 401, message: "Identifiants invalides" });
     }
 
+    // Empêcher les comptes Google de se connecter avec un mot de passe
     if (user.provider === "google") {
       return res.status(400).json({
-        error: "Ce compte est associé à Google. Utilisez la connexion Google.",
+        status: 400,
+        message: "Ce compte utilise Google pour se connecter",
       });
     }
 
-    if (!user.password) {
-      return res.status(400).json({
-        error: "Ce compte ne possède pas de mot de passe local.",
-      });
-    }
-
-    const bcrypt = await import("bcryptjs");
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    // 🚨 AJOUT MANQUANT : VÉRIFIER LE MOT DE PASSE
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "Mot de passe incorrect." });
+      return res
+        .status(401)
+        .json({ status: 401, message: "Identifiants invalides" });
     }
 
-    const jwt = await import("jsonwebtoken");
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
+      process.env.JWT_SECRET || "default_secret",
       { expiresIn: "7d" }
     );
 
-    res.status(200).json({
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({
+      status: 200,
       message: "Connexion réussie",
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        provider: user.provider,
-      },
+      user: safeUser(user),
     });
-  } catch (error: any) {
-    console.error("❌ Erreur login :", error);
-    res.status(500).json({
-      error: "Erreur lors de la connexion",
-      details: error.message,
-    });
+  } catch (err: any) {
+    return res.status(400).json({ status: 400, message: err.message });
   }
+});
+
+router.get("/me", checkAuth, async (req, res) => {
+  const user = await findUserById(req.user.userId);
+  res.json({ user: safeUser(user) });
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.json({ message: "Déconnecté" });
 });
 
 export default router;

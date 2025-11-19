@@ -2,37 +2,22 @@
 // 📁 controllers/userController.ts
 // ============================
 
-import { User } from "../models/User";
+import { User, UserDocument } from "../models/User";
 import { connectDB } from "../utils/db";
 import bcrypt from "bcryptjs";
 
 // ====================================
 // 🔹 Crée un utilisateur
 // ====================================
-export async function createUser(data: {
-  name?: string;
-  email: string;
-  password?: string;
-  picture?: string;
-  provider?: string;
-  role?: string;
-}) {
-  await connectDB();
+export const createUser = async (data: Partial<UserDocument>) => {
+  if (data.password && data.password !== "-") {
+    data.password = await bcrypt.hash(data.password, 10);
+  }
 
-  const existing = await User.findOne({ email: data.email });
-  if (existing) return existing;
-
-  const user = await User.create({
-    name: data.name || "Utilisateur",
-    email: data.email,
-    password: data.password || "-", // ❌ ne pas rehash ici
-    picture: data.picture || "",
-    provider: data.provider || "local",
-    role: data.role || "user",
-  });
-
+  const user = new User(data);
+  await user.save();
   return user;
-}
+};
 
 // ====================================
 // 🔹 Met à jour un utilisateur par ID (admin)
