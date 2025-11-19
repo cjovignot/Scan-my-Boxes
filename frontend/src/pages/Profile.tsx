@@ -15,6 +15,7 @@ const dashboardLinks: DashboardLink[] = [
   { label: "👥 Utilisateurs", path: "/admin/users", role: "admin" },
   { label: "👤 Mon compte", path: "/userAccount" },
   { label: "⚙️ Paramètres", path: "/settings" },
+  { label: "💳 Abonnement", path: "/subscription" },
 ];
 
 const Profile = () => {

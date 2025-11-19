@@ -8,12 +8,18 @@ import authRouter from "./routes/auth";
 import boxesRouter from "./routes/boxes";
 import storageRoutes from "./routes/storages";
 import adminRoutes from "./routes/admin";
+import subscriptionRoutes from "./routes/subscription";
+import plansRoutes from "./routes/plans";
+
+import stripeWebhook from "./routes/stripeWebhook";
 
 import { connectDB } from "./utils/db"; // ✅ utilise la fonction centralisée
 
 dotenv.config();
 
 const app = express();
+
+app.use("/api/webhook/stripe", stripeWebhook);
 
 // ============================
 // 🌐 CORS configuration
@@ -56,6 +62,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/boxes", boxesRouter);
 app.use("/api/storages", storageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/plans", plansRoutes);
 
 // ============================
 // 💡 Middleware global d’erreur

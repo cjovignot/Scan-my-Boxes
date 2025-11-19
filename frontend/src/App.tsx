@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { useAuth } from "./contexts/useAuth";
 import FloatingPrintButton from "./components/FloatingPrintButton";
+import Subscription from "./pages/Subscription";
 import MobileLayout from "./layouts/MobileLayout";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -63,6 +64,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/success" element={<AuthSuccess />} />
+            <Route path="/subscription" element={<Subscription />} />
 
             {/* Routes protégées */}
             <Route
