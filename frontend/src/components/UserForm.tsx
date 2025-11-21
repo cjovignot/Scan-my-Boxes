@@ -16,6 +16,48 @@ const UserForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const passwordRules = {
+    length: {
+      label: "Au moins 8 caractères",
+      test: (pw: string) => pw.length >= 8,
+    },
+    uppercase: {
+      label: "Au moins une majuscule",
+      test: (pw: string) => /[A-Z]/.test(pw),
+    },
+    lowercase: {
+      label: "Au moins une minuscule",
+      test: (pw: string) => /[a-z]/.test(pw),
+    },
+    number: {
+      label: "Au moins un chiffre",
+      test: (pw: string) => /[0-9]/.test(pw),
+    },
+    symbol: {
+      label: "Au moins un symbole",
+      test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
+    },
+  };
+
+  const [passwordStatus, setPasswordStatus] = useState(
+    Object.keys(passwordRules).reduce(
+      (acc, key) => ({ ...acc, [key]: false }),
+      {}
+    )
+  );
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const pw = e.target.value;
+    setFormData((prev) => ({ ...prev, password: pw }));
+
+    const newStatus: Record<string, boolean> = {};
+    for (const key in passwordRules) {
+      newStatus[key] =
+        passwordRules[key as keyof typeof passwordRules].test(pw);
+    }
+    setPasswordStatus(newStatus);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -87,10 +129,23 @@ const UserForm = () => {
             type="password"
             name="password"
             value={formData.password}
-            onChange={handleChange}
+            onChange={handlePasswordChange}
             required
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-yellow-400"
           />
+          <ul className="mt-1 text-xs">
+            {Object.keys(passwordRules).map((key) => (
+              <li
+                key={key}
+                className={`
+                  ${passwordStatus[key] ? "text-green-400" : "text-gray-400"}
+                `}
+              >
+                {passwordStatus[key] && "🗸 "}
+                {passwordRules[key as keyof typeof passwordRules].label}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <button
