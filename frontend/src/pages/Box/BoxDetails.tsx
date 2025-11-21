@@ -1,20 +1,22 @@
+// frontend/src/pages/boxes/BoxDetails.tsx
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCloudinaryImage } from "../../hooks/useCloudinaryImage";
 import BoxDetailsItem from "../../components/boxDetailsItem";
 import {
   ArrowLeft,
-  Printer,
   AlertTriangle,
   Edit3,
   Plus,
   Minus,
   X,
+  Printer,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/useApi";
 import { usePrint } from "../../hooks/usePrint";
 import * as htmlToImage from "html-to-image";
+import { useAuth } from "../../contexts/useAuth";
 
 interface ContentItem {
   _id: string;
@@ -50,19 +52,19 @@ const BoxDetails = () => {
   const { id } = useParams<{ id: string }>();
   const labelRef = useRef<HTMLDivElement>(null);
 
+  const { user } = useAuth(); // 🔹 utilisation du contexte Auth
   const API_URL = import.meta.env.VITE_API_URL;
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // ✅ utilisation corrigée de useApi avec `skip`
   const {
     data: box,
     loading,
     error,
     refetch,
-  } = useApi<Box>(`/api/boxes/${id}`, { skip: !id }); // ✅ plus besoin du "id ? ... : undefined"
+  } = useApi<Box>(`/api/boxes/${id}`, { skip: !id });
 
   const { selectedBoxes, toggleBox } = usePrint();
-  const isSelected = selectedBoxes.includes(box?._id);
+
+  const isSelected = box ? selectedBoxes.includes(box._id) : false;
 
   const [storageName, setStorageName] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
@@ -71,12 +73,12 @@ const BoxDetails = () => {
 
   const { src: qrOptimized } = useCloudinaryImage(box?.qrcodeURL, { w: 300 });
 
-  // ✅ refetch automatique quand l'id change
+  // 🔹 Refetch automatique si l'id change
   useEffect(() => {
     if (id) refetch();
   }, [id, refetch]);
 
-  // Récupère le nom de l'entrepôt
+  // 🔹 Récupération nom de l'entrepôt
   useEffect(() => {
     const fetchStorageName = async () => {
       if (!box?.storageId || !user?._id) return;
@@ -93,7 +95,7 @@ const BoxDetails = () => {
     fetchStorageName();
   }, [box?.storageId, API_URL, user]);
 
-  // Génération automatique de l’image de l’étiquette
+  // 🔹 Génération de l'image de l'étiquette
   useEffect(() => {
     if (!box || !labelRef.current) return;
 
@@ -115,45 +117,6 @@ const BoxDetails = () => {
 
     generateLabel();
   }, [box]);
-
-  // Impression
-  // const handlePrint = () => {
-  //   if (!labelImage) return;
-  //   const printWindow = window.open("", "_blank");
-  //   if (!printWindow) return;
-
-  //   printWindow.document.write(`
-  //     <html>
-  //       <head>
-  //         <title>Étiquette ${box?.number}</title>
-  //         <style>
-  //           @page {
-  //             size: 10cm 4cm;
-  //             margin: 0;
-  //           }
-  //           html, body {
-  //             margin: 0;
-  //             padding: 0;
-  //           }
-  //           img {
-  //             width: 10cm;
-  //             height: 4cm;
-  //             object-fit: contain;
-  //             display: block;
-  //           }
-  //         </style>
-  //       </head>
-  //       <body>
-  //         <img src="${labelImage}" alt="Étiquette" />
-  //         <script>
-  //           window.onload = () => { window.print(); window.onafterprint = () => window.close(); };
-  //         </script>
-  //       </body>
-  //     </html>
-  //   `);
-
-  //   printWindow.document.close();
-  // };
 
   if (loading)
     return (
@@ -179,7 +142,6 @@ const BoxDetails = () => {
 
   return (
     <>
-      {/* Contenu principal */}
       <div className="flex flex-col flex-1 px-4 py-10">
         {/* En-tête */}
         <motion.div
@@ -208,7 +170,7 @@ const BoxDetails = () => {
           </div>
         </motion.div>
 
-        {/* Étiquette pour génération */}
+        {/* Étiquette */}
         <div className="flex scale-80">
           <div
             ref={labelRef}
@@ -255,7 +217,7 @@ const BoxDetails = () => {
           Cliquez pour imprimer le QR code
         </p>
 
-        {/* Informations de la boîte */}
+        {/* Infos boîte */}
         <div className="relative w-full p-4 mx-auto mt-4 bg-gray-900 border border-gray-800 rounded-2xl">
           <p className="mb-3 text-sm text-gray-300">
             Entrepôt :{" "}
@@ -277,7 +239,7 @@ const BoxDetails = () => {
             </span>
           </p>
 
-          {/* Contenu de la boîte */}
+          {/* Contenu */}
           <div className="mt-6 mb-4 font-medium text-yellow-400">
             Contenu de la boîte
           </div>
@@ -295,7 +257,7 @@ const BoxDetails = () => {
         </div>
       </div>
 
-      {/* Modal d’impression */}
+      {/* Modal impression */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
           <div className="relative max-w-full max-h-[90vh] overflow-auto p-6 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl">
@@ -320,27 +282,15 @@ const BoxDetails = () => {
             )}
 
             <div className="flex justify-center gap-4 mt-6">
-              {/* <button
-                onClick={handlePrint}
-                disabled={!labelImage}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-black bg-yellow-400 rounded-lg hover:bg-yellow-500 disabled:opacity-50"
-              >
-                <Printer size={20} />
-              </button> */}
               <button
-                className={`flex justify-center items-center gap-1 px-2 py-2 text-sm font-medium border-2 rounded-lg hover:bg-yellow-500 disabled:opacity-50
-    ${
-      selectedBoxes.includes(box._id)
-        ? "bg-green-700 text-white border-green-700"
-        : "text-yellow-400 border-yellow-400"
-    }`}
-                onClick={() => toggleBox(box._id)}
+                className={`flex justify-center items-center gap-1 px-2 py-2 text-sm font-medium border-2 rounded-lg hover:bg-yellow-500 disabled:opacity-50 ${
+                  isSelected
+                    ? "bg-green-700 text-white border-green-700"
+                    : "text-yellow-400 border-yellow-400"
+                }`}
+                onClick={() => box?._id && toggleBox(box._id)}
               >
-                {selectedBoxes.includes(box._id) ? (
-                  <Minus size={15} />
-                ) : (
-                  <Plus size={15} />
-                )}
+                {isSelected ? <Minus size={15} /> : <Plus size={15} />}
                 <Printer size={20} />
               </button>
             </div>

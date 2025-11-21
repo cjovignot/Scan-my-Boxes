@@ -1,78 +1,94 @@
 import { useState } from "react";
-import { useApiMutation } from "../hooks/useApiMutation";
+import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const UserForm = () => {
+  const { login, signup, setUser } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signup" | "login">("login");
+
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  const loginMutation = useApiMutation<
-    {
-      message: string;
-      token: string;
-      user: {
-        _id: string;
-        name: string;
-        email: string;
-        role?: string;
-        provider?: string;
-      };
-    },
-    { email: string; password: string }
-  >("/api/auth/login", "POST", {
-    onSuccess: (data) => {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setFormData({ name: "", email: "", password: "" });
-      window.dispatchEvent(new Event("userLogin"));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-      // ✅ Redirection avec l’email dans l’URL
-      navigate(`/auth/success?email=${encodeURIComponent(data.user.email)}`);
+  const passwordRules = {
+    length: {
+      label: "Au moins 8 caractères",
+      test: (pw: string) => pw.length >= 8,
     },
-    onError: (err) => console.error("Erreur connexion :", err),
-  });
+    uppercase: {
+      label: "Au moins une majuscule",
+      test: (pw: string) => /[A-Z]/.test(pw),
+    },
+    lowercase: {
+      label: "Au moins une minuscule",
+      test: (pw: string) => /[a-z]/.test(pw),
+    },
+    number: {
+      label: "Au moins un chiffre",
+      test: (pw: string) => /[0-9]/.test(pw),
+    },
+    symbol: {
+      label: "Au moins un symbole",
+      test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
+    },
+  };
 
-  // ✅ Mutation SIGNUP
-  const signupMutation = useApiMutation<
-    { message: string; user: { _id: string; name: string; email: string } },
-    typeof formData
-  >("/api/user", "POST", {
-    onSuccess: () => {
-      setFormData({ name: "", email: "", password: "" });
-    },
-    onError: (err) => console.error("Erreur création utilisateur :", err),
-  });
+  const [passwordStatus, setPasswordStatus] = useState(
+    Object.keys(passwordRules).reduce(
+      (acc, key) => ({ ...acc, [key]: false }),
+      {}
+    )
+  );
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const pw = e.target.value;
+    setFormData((prev) => ({ ...prev, password: pw }));
+
+    const newStatus: Record<string, boolean> = {};
+    for (const key in passwordRules) {
+      newStatus[key] =
+        passwordRules[key as keyof typeof passwordRules].test(pw);
+    }
+    setPasswordStatus(newStatus);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    if (mode === "signup") {
-      await signupMutation.mutate(formData);
-    } else {
-      await loginMutation.mutate({
-        email: formData.email,
-        password: formData.password,
-      });
+    try {
+      if (mode === "signup") {
+        const user = await signup(
+          formData.name,
+          formData.email,
+          formData.password
+        );
+        setUser(user);
+        navigate(`/auth/success?email=${encodeURIComponent(user.email)}`);
+      } else {
+        const user = await login(formData.email, formData.password);
+        setUser(user);
+        navigate(`/auth/success?email=${encodeURIComponent(user.email)}`);
+      }
+
+      setFormData({ name: "", email: "", password: "" });
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || "Erreur inconnue");
+    } finally {
+      setLoading(false);
     }
   };
-
-  // ✅ Extraction dynamique de l’état selon le mode
-  const loading =
-    mode === "signup" ? signupMutation.loading : loginMutation.loading;
-  const error = mode === "signup" ? signupMutation.error : loginMutation.error;
-  const data = mode === "signup" ? signupMutation.data : loginMutation.data;
 
   return (
     <div className="max-w-md p-6 mx-auto text-white shadow-lg bg-gray-950 rounded-2xl">
@@ -113,10 +129,24 @@ const UserForm = () => {
             type="password"
             name="password"
             value={formData.password}
-            onChange={handleChange}
+            onChange={handlePasswordChange}
             required
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-yellow-400"
           />
+          <ul className="mt-1 text-xs">
+            {mode === "signup" &&
+              Object.keys(passwordRules).map((key) => (
+                <li
+                  key={key}
+                  className={`
+                  ${passwordStatus[key] ? "text-green-400" : "text-gray-400"}
+                `}
+                >
+                  {passwordStatus[key] && "🗸 "}
+                  {passwordRules[key as keyof typeof passwordRules].label}
+                </li>
+              ))}
+          </ul>
         </div>
 
         <button
@@ -135,7 +165,6 @@ const UserForm = () => {
       </form>
 
       {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
-      {data && <p className="mt-3 text-sm text-green-400">{data.message}</p>}
 
       <div className="mt-4 text-center">
         {mode === "signup" ? (

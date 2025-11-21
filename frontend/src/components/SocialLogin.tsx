@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
-type SocialLoginProps = {
-  onLogin: (data: { token: string }) => void;
-};
-
-export const SocialLogin = ({ onLogin }: SocialLoginProps) => {
+export const SocialLogin = () => {
   const [isPWA, setIsPWA] = useState(false);
-  // const [logs, setLogs] = useState<string[]>([]);
-
-  // const log = (msg: string) => setLogs((prev) => [...prev, msg]);
+  const { loginWithGoogle } = useAuth();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone; // iOS
+      (window.navigator as any).standalone;
 
     setIsPWA(isStandalone);
 
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-    const handleCredentialResponse = (response: any) => {
-      if (response?.credential) {
-        onLogin({ token: response.credential });
+    const handleCredentialResponse = async (response: any) => {
+      if (!response?.credential) return;
+
+      try {
+        // Appelle le contexte pour login Google
+        await loginWithGoogle(response.credential);
+      } catch (err) {
+        console.error("❌ Google login failed:", err);
       }
     };
 
@@ -47,28 +47,21 @@ export const SocialLogin = ({ onLogin }: SocialLoginProps) => {
         width: 250,
       }
     );
+  }, [loginWithGoogle]);
 
-    // log("🟢 Bouton Google rendu.");
-  }, [onLogin]);
-
-  // 🧱 Bouton custom pour PWA
   const handlePwaLogin = () => {
     const API_URL = import.meta.env.VITE_API_URL;
-    const redirectUrl = `${API_URL}/api/auth/google-redirect?source=pwa`;
-    window.location.href = redirectUrl;
+    window.location.href = `${API_URL}/auth/google-redirect?source=pwa`;
   };
 
   return (
     <div className="flex flex-col items-center space-y-4">
       {!isPWA ? (
-        <div
-          id="googleSignIn"
-          className="overflow-hidden transition-transform duration-200 rounded-full shadow-md hover:shadow-lg hover:scale-105"
-        ></div>
+        <div id="googleSignIn" className="rounded-full shadow-md"></div>
       ) : (
         <button
           onClick={handlePwaLogin}
-          className="flex items-center w-[250px] h-[50px] px-1 py-3 transition-all duration-200 bg-[#131314] rounded-full shadow hover:shadow-lg hover:scale-105 active:scale-95"
+          className="flex items-center w-[250px] h-[50px] px-1 py-3 transition-all duration-200 bg-[#131314] rounded-full shadow hover:shadow-lg hover:scale-105"
         >
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"

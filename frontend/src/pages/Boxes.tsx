@@ -9,12 +9,10 @@ import {
   ArrowDownUp,
   ChevronDown,
   AlertTriangle,
+  Boxes as StorageIcon,
 } from "lucide-react";
-import { Boxes as StorageIcon } from "lucide-react";
+import { useAuth } from "../contexts/useAuth";
 
-// =====================================
-// 🔹 Types
-// =====================================
 type ContentItem = {
   name: string;
   quantity: number;
@@ -42,38 +40,29 @@ type Storage = {
   name: string;
 };
 
-// =====================================
-// 🔹 Composant principal
-// =====================================
 const Boxes = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const [boxes, setBoxes] = useState<Box[] | null>(null);
   const [storages, setStorages] = useState<Storage[] | null>(null);
   const [search, setSearch] = useState("");
-  const [sortMode, setSortMode] = useState<"destination" | "objectCount">(
-    "destination"
+  const [sortByNumber, setSortByNumber] = useState<"asc" | "desc" | null>(
+    "asc"
   );
   const [filterFragile, setFilterFragile] = useState<
     "all" | "fragile" | "nonFragile"
   >("all");
-  const [sortByNumber, setSortByNumber] = useState<"asc" | "desc" | null>(
-    "asc"
-  );
   const [filterStorage, setFilterStorage] = useState<string>("all");
-  const [ascending, setAscending] = useState(true);
-  const [scrolled, setScrolled] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
 
   const headerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-
-  // =====================================
   // 🚨 Aucun utilisateur connecté
-  // =====================================
-  if (!user) {
+  if (!user?._id) {
     return (
       <PageWrapper>
         <div className="flex flex-col items-center justify-center min-h-screen px-6 text-white">
@@ -95,9 +84,7 @@ const Boxes = () => {
     );
   }
 
-  // =====================================
-  // 🔹 Fetch des boîtes de l’utilisateur
-  // =====================================
+  // 🔹 Fetch des boîtes
   useEffect(() => {
     const fetchBoxes = async () => {
       try {
@@ -113,13 +100,10 @@ const Boxes = () => {
         setLoading(false);
       }
     };
-
     fetchBoxes();
   }, [API_URL, user._id]);
 
-  // =====================================
   // 🔹 Fetch des entrepôts
-  // =====================================
   useEffect(() => {
     const fetchStorages = async () => {
       try {
@@ -133,13 +117,10 @@ const Boxes = () => {
         setStorages([]);
       }
     };
-
     fetchStorages();
   }, [API_URL, user._id]);
 
-  // =====================================
   // 🔹 Suppression d’une boîte
-  // =====================================
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette boîte ?")) return;
 
@@ -155,9 +136,7 @@ const Boxes = () => {
     }
   };
 
-  // =====================================
   // 🔹 Filtrage + tri
-  // =====================================
   const safeBoxes = Array.isArray(boxes) ? boxes : [];
   const safeStorages = Array.isArray(storages) ? storages : [];
 
@@ -176,31 +155,19 @@ const Boxes = () => {
     })
     .filter((box) => {
       if (filterStorage === "all") return true;
-      if (filterStorage === "none") return !box.storageId; // null ou undefined
+      if (filterStorage === "none") return !box.storageId;
       return box.storageId === filterStorage;
     })
-
     .sort((a, b) => {
       if (sortByNumber) {
         return sortByNumber === "asc"
           ? a.number.localeCompare(b.number)
           : b.number.localeCompare(a.number);
       }
-
-      if (sortMode === "destination") {
-        return ascending
-          ? a.destination.localeCompare(b.destination)
-          : b.destination.localeCompare(a.destination);
-      } else {
-        return ascending
-          ? a.content.length - b.content.length
-          : b.content.length - a.content.length;
-      }
+      return 0;
     });
 
-  // =====================================
   // 🔹 Ajustement du header
-  // =====================================
   const updateContentOffset = () => {
     const headerHeight = headerRef.current?.offsetHeight ?? 0;
     if (contentRef.current) {
@@ -212,25 +179,21 @@ const Boxes = () => {
     updateContentOffset();
     const ro = new ResizeObserver(() => updateContentOffset());
     if (headerRef.current) ro.observe(headerRef.current);
-    window.addEventListener("resize", updateContentOffset);
     const onScroll = () => setScrolled(window.scrollY > 6);
     window.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", updateContentOffset);
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", updateContentOffset);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", updateContentOffset);
     };
   }, []);
 
-  // =====================================
   // 🔹 Helper : retrouver le nom d’un entrepôt
-  // =====================================
   const getStorageName = (id: string) =>
     safeStorages.find((s) => s._id === id)?.name || "Inconnu";
 
-  // =====================================
   // 🔹 Rendu
-  // =====================================
   return (
     <PageWrapper>
       <div className="relative min-h-screen text-white">

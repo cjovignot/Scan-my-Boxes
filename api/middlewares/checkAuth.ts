@@ -1,39 +1,29 @@
-// api/middlewares/checkAuth.ts
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
-export interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    email: string;
-    role: string;
-  };
-}
+import { IUser } from "../src/types/user";
+import { AuthRequest } from "../src/types/express-request";
 
 export const checkAuth = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Token manquant ou invalide" });
-  }
-
-  const token = authHeader.split(" ")[1];
+  // 🔹 Lire le token depuis le cookie, pas depuis le header
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Non authentifié." });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
-      email: string;
-      role: string;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as IUser;
+
+    req.user = {
+      _id: decoded._id,
+      role: decoded.role,
+      email: decoded.email,
+      name: decoded.name,
     };
 
-    req.user = decoded; // ✅ Attache les infos utilisateur
     next();
-  } catch (err) {
-    console.error("Erreur vérification JWT :", err);
-    res.status(401).json({ message: "Token invalide ou expiré" });
+  } catch (error) {
+    return res.status(401).json({ error: "Token invalide." });
   }
 };

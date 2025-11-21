@@ -1,17 +1,21 @@
 // main.tsx
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import { PrintProvider } from "./contexts/PrintProvider.tsx";
 import "./index.css";
-import App from "./App.tsx";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import { AuthProvider } from "./contexts/AuthProvider";
+import { PrintProvider } from "./contexts/PrintProvider.tsx";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  // Tu peux laisser React.StrictMode en DEV, ça double les effets intentionnellement
+  <React.StrictMode>
     <BrowserRouter>
-      <PrintProvider>
-        <App />
-      </PrintProvider>
+      <AuthProvider>
+        <PrintProvider>
+          <App />
+        </PrintProvider>
+      </AuthProvider>
     </BrowserRouter>
-  </StrictMode>
+  </React.StrictMode>
 );

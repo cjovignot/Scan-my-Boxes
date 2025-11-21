@@ -18,28 +18,32 @@ const dashboardLinks: DashboardLink[] = [
 ];
 
 const Profile = () => {
-  const { user, logout } = useAuth()!;
+  const { user, loading, logout } = useAuth()!;
   const navigate = useNavigate();
+
+  // 🔹 Attendre que l'utilisateur soit chargé avant de naviguer
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // 🔹 Affiche rien tant que l'auth n'est pas prêt
+  if (loading || !user) return null;
 
   const getInitials = (name: string | undefined) => {
     if (!name) return "?";
     return name
-      .split(" ") // découpe chaque mot
-      .map((word) => word[0]) // prend la première lettre
-      .join("") // concatène
-      .toUpperCase(); // met en majuscule
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
   };
-
-  useEffect(() => {
-    if (!user) navigate("/login");
-  }, [user, navigate]);
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
-
-  if (!user) return null;
 
   const visibleLinks = dashboardLinks.filter(
     (link) => !link.role || link.role === user.role

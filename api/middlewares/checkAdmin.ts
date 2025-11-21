@@ -1,6 +1,5 @@
-// api/middlewares/checkAdmin.ts
 import { Response, NextFunction } from "express";
-import { AuthRequest } from "./checkAuth";
+import { AuthRequest } from "../src/types/express-request";
 
 export const checkAdmin = (
   req: AuthRequest,
