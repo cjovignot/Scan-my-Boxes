@@ -106,9 +106,9 @@ function App() {
           <Route
             path="/storages"
             element={
-              <ProtectedRoute>
-                <Storages />
-              </ProtectedRoute>
+              // <ProtectedRoute>
+              <Storages />
+              // </ProtectedRoute>
             }
           />
 
@@ -124,9 +124,9 @@ function App() {
           <Route
             path="/boxes"
             element={
-              <ProtectedRoute>
-                <Boxes />
-              </ProtectedRoute>
+              // <ProtectedRoute>
+              <Boxes />
+              // </ProtectedRoute>
             }
           />
 
@@ -178,9 +178,9 @@ function App() {
           <Route
             path="/scan"
             element={
-              <ProtectedRoute>
-                <ScanPage />
-              </ProtectedRoute>
+              // <ProtectedRoute>
+              <ScanPage />
+              // </ProtectedRoute>
             }
           />
 
