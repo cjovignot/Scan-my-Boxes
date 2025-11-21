@@ -5,7 +5,13 @@ import { useApiMutation } from "../hooks/useApiMutation";
 import { useAuth } from "../contexts/AuthContext";
 
 interface GoogleLoginResponse {
-  user: any; // adapte ce type selon ton User réel
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    token: string; // si ton API renvoie un JWT
+  };
 }
 
 interface GoogleLoginPayload {
@@ -20,11 +26,15 @@ const Login = () => {
   const { mutate: loginWithGoogle, loading } = useApiMutation<
     GoogleLoginResponse,
     GoogleLoginPayload
-  >(`${import.meta.env.VITE_API_URL}/api/auth/google-login`, "POST", {
+  >(`/api/auth/google-login`, "POST", {
     onSuccess: (data) => {
       if (!data?.user) return alert("Utilisateur non trouvé");
+
+      // 🔹 Mettre à jour le contexte Auth
       setUser(data.user);
-      window.location.href = "/profile";
+
+      // 🔹 Redirection après login
+      navigate("/profile");
     },
     onError: (err) => {
       console.error("Erreur Google login:", err);
@@ -38,7 +48,7 @@ const Login = () => {
 
   return (
     <div className="flex flex-col items-center px-6 py-10 text-white">
-      {/* 🔹 Formulaire utilisateur */}
+      {/* 🔹 Formulaire utilisateur classique */}
       <div className="w-full max-w-sm mt-4 animate-fadeIn">
         <UserForm />
       </div>

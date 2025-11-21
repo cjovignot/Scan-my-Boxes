@@ -7,11 +7,10 @@ import {
   Tag,
   Clock,
   PackageSearch,
-  Plus,
 } from "lucide-react";
 import { useApi } from "../hooks/useApi";
-import { useApiMutation } from "../hooks/useApiMutation";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/useAuth";
 
 type Box = {
   _id: string;
@@ -34,7 +33,7 @@ type Storage = {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = useAuth(); // 🔹 Utilisation du contexte Auth
 
   // =============================
   // 🔹 Fetch API Data
@@ -44,9 +43,7 @@ const Dashboard = () => {
     data: storagesRaw,
     loading: loadingStorages,
     error: errorStorages,
-  } = useApi<Storage[]>(`/api/storages?ownerId=${user?._id}`, {
-    skip: !user?._id,
-  });
+  } = useApi<Storage[]>(user?._id ? `/api/storages?ownerId=${user._id}` : null);
 
   const storages = storagesRaw ?? [];
 
@@ -54,8 +51,7 @@ const Dashboard = () => {
     data: boxesRaw,
     loading: loadingBoxes,
     error: errorBoxes,
-    refetch: refetchBoxes,
-  } = useApi<Box[]>(`/api/boxes?ownerId=${user?._id}`, { skip: !user?._id });
+  } = useApi<Box[]>(user?._id ? `/api/boxes?ownerId=${user._id}` : null);
 
   const boxes = boxesRaw ?? [];
 
@@ -184,50 +180,39 @@ const Dashboard = () => {
           </h1>
         </motion.div>
 
-<div className="grid grid-cols-2 gap-3 mt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-  {stats.map(({ id, label, value, description, icon: Icon }) => (
-    <motion.div
-      key={id}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ scale: 1.02 }}
-      className="
-        p-5 rounded-2xl bg-gray-900 border border-gray-800
-        shadow-lg hover:shadow-xl hover:border-gray-700
-        transition-all duration-300 cursor-pointer
-        flex flex-col justify-between
-      "
-    >
-      {/* Section icône + label */}
-      <div className="flex items-center gap-4">
-        {/* Icône dans une capsule moderne */}
-        <div
-          className="w-12 h-12 flex items-center justify-center rounded-xl
-          bg-gray-800 border border-gray-700
-          shadow-inner"
-        >
-          <Icon size={26} strokeWidth={1.3} className="text-yellow-400" />
+        <div className="grid grid-cols-2 gap-3 mt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {stats.map(({ id, label, value, description, icon: Icon }) => (
+            <motion.div
+              key={id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              whileHover={{ scale: 1.02 }}
+              className="flex flex-col justify-between p-5 transition-all duration-300 bg-gray-900 border border-gray-800 shadow-lg cursor-pointer  rounded-2xl hover:shadow-xl hover:border-gray-700"
+            >
+              {/* Section icône + label */}
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center justify-center w-12 h-12 bg-gray-800 border border-gray-700 shadow-inner rounded-xl"
+                >
+                  <Icon
+                    size={26}
+                    strokeWidth={1.3}
+                    className="text-yellow-400"
+                  />
+                </div>
+              </div>
+
+              {/* Valeur principale */}
+              <p className="mt-4 text-3xl font-semibold tracking-tight text-white">
+                {value}
+              </p>
+
+              {/* Description */}
+              <p className="mt-2 text-xs text-gray-500">{description}</p>
+            </motion.div>
+          ))}
         </div>
-
-        {/* Label */}
-        {/* <div>
-          <h2 className="text-sm font-medium text-gray-300">{label}</h2>
-        </div> */}
-      </div>
-
-      {/* Valeur principale */}
-      <p className="mt-4 text-3xl font-semibold text-white tracking-tight">
-        {value}
-      </p>
-
-      {/* Description */}
-      <p className="mt-2 text-xs text-gray-500">
-        {description}
-      </p>
-    </motion.div>
-  ))}
-</div>
 
         <p className="mt-10 text-sm text-center text-gray-500">
           Aperçu global de votre activité.

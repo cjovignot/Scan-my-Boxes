@@ -1,63 +1,35 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useApiMutation } from "../hooks/useApiMutation";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const AuthSuccess = () => {
-  const [params] = useSearchParams();
-  const email = params.get("email");
   const navigate = useNavigate();
-  const { setUser } = useAuth();
-
+  const auth = useAuth();
   const [message, setMessage] = useState("🔄 Connexion en cours...");
 
-  const { mutate } = useApiMutation<{ user: any }>(
-    // 👇 on appelle la route GET mais avec une "mutation" personnalisée
-    `${import.meta.env.VITE_API_URL}/api/user/by-email/${email}`,
-    "GET",
-    {
-      onSuccess: (data) => {
-        if (data?.user) {
-          setUser(data.user);
-          setMessage("✅ Connexion réussie !");
-          setTimeout(() => navigate("/profile"), 800);
-        } else {
-          setMessage("⚠️ Utilisateur introuvable.");
-          setTimeout(() => navigate("/login"), 1000);
-        }
-      },
-      onError: (err) => {
-        console.error("❌ Erreur de connexion :", err);
-        setMessage("❌ Erreur lors de la connexion.");
-        setTimeout(() => navigate("/login"), 1000);
-      },
-    }
-  );
-
   useEffect(() => {
-    if (!email) {
-      setMessage("⚠️ Email manquant.");
-      setTimeout(() => navigate("/login"), 800);
-      return;
+    if (auth?.user) {
+      // ✅ User déjà présent dans le contexte
+      setMessage("✅ Connexion réussie !");
+      const timer = setTimeout(() => navigate("/profile"), 800);
+      return () => clearTimeout(timer);
+    } else {
+      // ⚠️ Aucun user trouvé → redirection login
+      setMessage("⚠️ Utilisateur introuvable.");
+      const timer = setTimeout(() => navigate("/login"), 1000);
+      return () => clearTimeout(timer);
     }
+  }, [auth?.user, navigate]);
 
-    // 👇 On déclenche la "mutation" GET manuellement
-    mutate();
-  }, [email]);
+  const getMessageColor = () => {
+    if (message.includes("🔄")) return "text-yellow-400 animate-pulse";
+    if (message.includes("✅")) return "text-green-400";
+    return "text-red-400";
+  };
 
   return (
-    <div className="flex items-center min-h-screen justify-center text-white">
-      <p
-        className={`text-lg ${
-          message.includes("🔄")
-            ? "text-yellow-400 animate-pulse"
-            : message.includes("✅")
-            ? "text-green-400"
-            : "text-red-400"
-        }`}
-      >
-        {message}
-      </p>
+    <div className="flex items-center justify-center min-h-screen text-white bg-black">
+      <p className={`text-lg ${getMessageColor()}`}>{message}</p>
     </div>
   );
 };

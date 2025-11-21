@@ -6,15 +6,22 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // cookies HTTP only
 });
 
-// ✅ Intercepteur pour attacher automatiquement le token
+// 🔹 Attache automatiquement le token si présent (optionnel si cookies)
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+// ❗ Pas de redirection ici — on laisse AuthProvider gérer 401
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default axiosClient;

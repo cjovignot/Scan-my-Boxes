@@ -1,8 +1,10 @@
+// frontend/src/pages/storages/StorageCreate.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
 import { ArrowLeft, Save } from "lucide-react";
 import { useApiMutation } from "../hooks/useApiMutation";
+import { useAuth } from "../contexts/useAuth";
 
 interface StorageForm {
   name: string;
@@ -11,7 +13,7 @@ interface StorageForm {
 
 const StorageCreate = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = useAuth(); // 🔹 utilisation du contexte Auth
 
   const [form, setForm] = useState<StorageForm>({
     name: "",

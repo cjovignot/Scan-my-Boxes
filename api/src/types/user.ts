@@ -1,7 +1,8 @@
 // api/src/types/user.ts
 import { Schema, model, Document } from "mongoose";
 
-export interface IUser extends Document {
+// Interface complète pour Mongoose
+export interface IUserDocument extends Document {
   _id: string;
   name: string;
   email: string;
@@ -9,19 +10,33 @@ export interface IUser extends Document {
   picture?: string;
   role: "user" | "admin";
   provider: "local" | "google";
+  printSettings?: Record<string, any>;
 }
 
-const userSchema = new Schema<IUser>(
+// Interface simplifiée pour req.user (exclut le mot de passe)
+export interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: "user" | "admin";
+  provider?: "local" | "google";
+  picture?: string;
+}
+
+// Schéma Mongoose
+const userSchema = new Schema<IUserDocument>(
   {
-    _id: { type: String, required: false },
+    _id: { type: String },
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: false },
-    picture: { type: String, required: false },
-    role: { type: String, default: "user" },
-    provider: { type: String, default: "local" },
+    password: { type: String },
+    picture: { type: String },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+    provider: { type: String, enum: ["local", "google"], default: "local" },
+    printSettings: { type: Object, default: {} },
   },
   { timestamps: true }
 );
 
-export const User = model<IUser>("User", userSchema);
+// Modèle Mongoose
+export const User = model<IUserDocument>("User", userSchema);

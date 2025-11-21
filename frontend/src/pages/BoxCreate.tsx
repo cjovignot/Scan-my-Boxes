@@ -4,6 +4,7 @@ import PageWrapper from "../components/PageWrapper";
 import { ArrowLeft, Save, Plus, Camera, ChevronDown } from "lucide-react";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
+import { useAuth } from "../contexts/useAuth";
 
 type Storage = {
   _id: string;
@@ -12,7 +13,7 @@ type Storage = {
 
 const BoxCreate = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = useAuth(); // 🔹 Utilisation du contexte Auth
 
   // ============================
   // 🔹 Récupération des entrepôts
@@ -102,10 +103,7 @@ const BoxCreate = () => {
         `https://api.cloudinary.com/v1_1/${
           import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
         }/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
+        { method: "POST", body: formData }
       );
 
       const data = await res.json();
@@ -130,10 +128,11 @@ const BoxCreate = () => {
   // ============================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?._id) return alert("Utilisateur non connecté.");
 
     const payload = {
       ...form,
-      ownerId: user?._id,
+      ownerId: user._id,
       content: contentItems,
       dimensions: {
         width: Number(form.width),
@@ -202,7 +201,7 @@ const BoxCreate = () => {
             />
           </div>
 
-          {/* --- Contenu dynamique --- */}
+          {/* Contenu dynamique */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-semibold text-yellow-400 text-md">Contenu</h2>
@@ -226,6 +225,7 @@ const BoxCreate = () => {
                 key={index}
                 className="flex flex-col gap-2 p-3 mt-2 border border-gray-700 rounded-lg bg-gray-950"
               >
+                {/* Nom et quantité */}
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -303,35 +303,22 @@ const BoxCreate = () => {
             ))}
           </div>
 
-          {/* --- Dimensions --- */}
+          {/* Dimensions */}
           <div className="flex gap-2 mt-4">
-            <input
-              type="number"
-              name="width"
-              placeholder="l (cm)"
-              value={form.width}
-              onChange={handleChange}
-              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
-            />
-            <input
-              type="number"
-              name="height"
-              placeholder="L (cm)"
-              value={form.height}
-              onChange={handleChange}
-              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
-            />
-            <input
-              type="number"
-              name="depth"
-              placeholder="h (cm)"
-              value={form.depth}
-              onChange={handleChange}
-              className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
-            />
+            {["width", "height", "depth"].map((dim) => (
+              <input
+                key={dim}
+                type="number"
+                name={dim}
+                placeholder={`${dim} (cm)`}
+                value={(form as any)[dim]}
+                onChange={handleChange}
+                className="w-1/3 px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:ring-1 focus:ring-yellow-400"
+              />
+            ))}
           </div>
 
-          {/* --- Option Fragile --- */}
+          {/* Option Fragile */}
           <div className="flex items-center gap-2 mt-4">
             <input
               type="checkbox"

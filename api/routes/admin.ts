@@ -1,7 +1,11 @@
-import { Router, Response } from "express";
+// api/routes/admin.ts
+import { Router, Response, Request as ExpressRequest } from "express";
 import { checkAuth } from "../middlewares/checkAuth";
 import { checkAdmin } from "../middlewares/checkAdmin";
-import { AuthRequest } from "../middlewares/checkAuth";
+import { IUser } from "../src/types/user"; // ton type IUser
+
+// Type pour req avec user
+type AuthRequest = ExpressRequest & { user?: IUser };
 
 const router = Router();
 

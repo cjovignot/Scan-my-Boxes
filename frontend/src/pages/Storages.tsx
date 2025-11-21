@@ -1,3 +1,4 @@
+// frontend/src/pages/Storages.tsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
@@ -11,6 +12,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useApi } from "../hooks/useApi";
+import { useAuth } from "../contexts/useAuth";
+import axiosClient from "../api/axiosClient";
 
 type Storage = {
   _id: string;
@@ -22,6 +25,7 @@ type Storage = {
 
 const Storages = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState<"name" | "boxCount">("name");
   const [ascending, setAscending] = useState(true);
@@ -30,11 +34,7 @@ const Storages = () => {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-
-  // =====================================
   // 🚨 Aucun utilisateur connecté
-  // =====================================
   if (!user) {
     return (
       <PageWrapper>
@@ -57,18 +57,19 @@ const Storages = () => {
     );
   }
 
-  // 🔹 Hook custom pour récupérer les entrepôts
+  // 🔹 Hook pour récupérer les entrepôts uniquement si user est défini
   const {
-    data: storages = [],
+    data: storagesData,
     loading,
     error,
     refetch,
-  } = useApi<Storage[]>(
-    user?._id ? `/api/storages?ownerId=${user._id}` : undefined
-  );
+  } = useApi<Storage[]>(user ? `/api/storages?ownerId=${user._id}` : null);
+
+  // 🔹 Assurer que storages est toujours un tableau
+  const storages = Array.isArray(storagesData) ? storagesData : [];
 
   // --- Filtrage & tri ---
-  const filtered = (storages ?? [])
+  const filtered = storages
     .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       if (sortMode === "name") {
@@ -81,7 +82,7 @@ const Storages = () => {
         : (b.boxes?.length ?? 0) - (a.boxes?.length ?? 0);
     });
 
-  // --- Ajustement du padding ---
+  // --- Ajustement padding contenu ---
   const updateContentOffset = () => {
     const headerHeight = headerRef.current?.offsetHeight ?? 0;
     if (contentRef.current) {
@@ -93,9 +94,11 @@ const Storages = () => {
     updateContentOffset();
     const ro = new ResizeObserver(updateContentOffset);
     if (headerRef.current) ro.observe(headerRef.current);
-    window.addEventListener("resize", updateContentOffset);
+
     const onScroll = () => setScrolled(window.scrollY > 6);
+    window.addEventListener("resize", updateContentOffset);
     window.addEventListener("scroll", onScroll);
+
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", updateContentOffset);
@@ -109,17 +112,7 @@ const Storages = () => {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/storages/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData?.error || "Erreur lors de la suppression");
-      }
-      // 🔹 Mise à jour locale
+      const res = await axiosClient.delete(`/api/storages/${id}`);
       refetch?.();
       alert("✅ Entrepôt supprimé avec succès !");
     } catch (err) {
@@ -179,7 +172,6 @@ const Storages = () => {
                 <option value="name">Nom de l'entrepôt</option>
                 <option value="boxCount">Nombre de boîtes</option>
               </select>
-
               <ChevronDown
                 size={16}
                 className="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-1/2"
@@ -213,7 +205,7 @@ const Storages = () => {
             <div className="pt-2 space-y-4">
               {filtered.map((storage) => (
                 <div
-                  key={storage._id}
+                  key={storage._id} // 🔹 assure clé unique
                   className="flex flex-col p-4 bg-gray-800 border border-gray-700 rounded-xl"
                 >
                   <div className="flex items-center justify-between">
@@ -222,7 +214,12 @@ const Storages = () => {
                     </h2>
 
                     <div className="flex items-center gap-3">
-                      <button className="p-2 transition-colors rounded hover:bg-gray-700">
+                      <button
+                        onClick={() =>
+                          navigate(`/storages/edit/${storage._id}`)
+                        }
+                        className="p-2 transition-colors rounded hover:bg-gray-700"
+                      >
                         <Pencil size={18} />
                       </button>
                       <button

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
+import { useAuth } from "../contexts/useAuth";
 
 type EditUserModalProps = {
   userId: string | null;
@@ -35,6 +36,8 @@ export const EditUserModal = ({
   onClose,
   onSuccess,
 }: EditUserModalProps) => {
+  const { user: currentUser, setUser } = useAuth();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -44,8 +47,8 @@ export const EditUserModal = ({
 
   const [toast, setToast] = useState<string | null>(null);
 
-  // Fetch user (préremplir le formulaire)
-  const { data: user } = useApi<{
+  // 🔹 Fetch user pour pré-remplissage
+  const { data: fetchedUser } = useApi<{
     _id: string;
     name: string;
     email: string;
@@ -53,23 +56,32 @@ export const EditUserModal = ({
   }>(`/api/user/${userId}`, { skip: !userId });
 
   useEffect(() => {
-    if (user) {
+    if (fetchedUser) {
       setFormData({
-        name: user.name,
-        email: user.email,
+        name: fetchedUser.name,
+        email: fetchedUser.email,
         password: "",
-        role: user.role || "user",
+        role: fetchedUser.role || "user",
       });
     }
-  }, [user]);
+  }, [fetchedUser]);
 
-  // PATCH user
+  // 🔹 PATCH user
   const { mutate, loading, error } = useApiMutation<
-    { message: string },
+    {
+      message: string;
+      updatedUser?: { name: string; email: string; role: string };
+    },
     Partial<typeof formData>
   >("", "PATCH", {
     onSuccess: (data) => {
       setToast(data.message || "Utilisateur mis à jour !");
+
+      // 🔹 Met à jour le contexte si l'utilisateur modifié est celui connecté
+      if (currentUser && currentUser._id === userId && data.updatedUser) {
+        setUser({ ...currentUser, ...data.updatedUser });
+      }
+
       onSuccess?.();
       onClose();
     },
@@ -101,14 +113,13 @@ export const EditUserModal = ({
     <>
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
         <div className="w-full max-w-md p-6 text-white shadow-lg bg-gray-950 rounded-xl">
           <h2 className="mb-4 text-lg font-semibold text-yellow-400">
             Modifier l’utilisateur
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
             {/* Nom */}
             <div>
               <label className="block mb-1 text-sm">Nom</label>

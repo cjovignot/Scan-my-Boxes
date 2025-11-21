@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageWrapper from "../../components/PageWrapper";
-import {
-  ArrowLeft,
-  Save,
-  Plus,
-  Camera,
-  ChevronDown,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Save, Plus, Camera, ChevronDown } from "lucide-react";
 import { useApi } from "../../hooks/useApi";
 import { useApiMutation } from "../../hooks/useApiMutation";
+import { useAuth } from "../../contexts/useAuth";
 
 type Storage = {
   _id: string;
@@ -42,23 +36,23 @@ type Box = {
 const BoxEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = useAuth(); // 🔹 Utilisation du contexte Auth
 
-  // ✅ Charger la boîte à modifier
+  // Charger la boîte
   const {
     data: box,
     loading: loadingBox,
     error: errorBox,
   } = useApi<Box>(id ? `/api/boxes/${id}` : null);
 
-  // ✅ Charger la liste des entrepôts
+  // Charger la liste des entrepôts
   const {
     data: storages,
     loading: loadingStorages,
     error: errorStorages,
   } = useApi<Storage[]>(user?._id ? `/api/storages?ownerId=${user._id}` : null);
 
-  // ✅ Mutation : mise à jour de boîte
+  // Mutation pour mettre à jour la boîte
   const { mutate: updateBox, loading: updating } = useApiMutation(
     id ? `/api/boxes/${id}` : "",
     "PUT",
@@ -74,7 +68,7 @@ const BoxEdit = () => {
     }
   );
 
-  // ✅ États du formulaire
+  // États du formulaire
   const [form, setForm] = useState({
     destination: "",
     storageId: "",
@@ -85,7 +79,7 @@ const BoxEdit = () => {
   });
   const [contentItems, setContentItems] = useState<BoxItem[]>([]);
 
-  // ✅ Remplir le formulaire quand la boîte est chargée
+  // Remplir le formulaire quand la boîte est chargée
   useEffect(() => {
     if (box) {
       setForm({
@@ -100,18 +94,14 @@ const BoxEdit = () => {
     }
   }, [box]);
 
-  // ==============================
-  // 🔸 Gestion des champs
-  // ==============================
+  // Gestion des champs
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ==============================
-  // 🔸 Gestion des objets
-  // ==============================
+  // Gestion des objets
   const handleAddItem = () => {
     setContentItems((prev) => [
       ...prev,
@@ -133,9 +123,7 @@ const BoxEdit = () => {
     );
   };
 
-  // ==============================
-  // 🔸 Upload d'image (Cloudinary)
-  // ==============================
+  // Upload d'image (Cloudinary)
   const handleImageUpload = async (index: number, file: File) => {
     const updated = [...contentItems];
     updated[index].uploading = true;
@@ -172,12 +160,9 @@ const BoxEdit = () => {
     }
   };
 
-  // ==============================
-  // 🔸 Soumission du formulaire
-  // ==============================
+  // Soumission du formulaire
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!user?._id) return alert("Utilisateur non connecté.");
 
     const payload = {
@@ -194,9 +179,7 @@ const BoxEdit = () => {
     updateBox(payload);
   };
 
-  // ==============================
-  // 🔸 Rendu
-  // ==============================
+  // Rendu
   if (loadingBox)
     return (
       <PageWrapper>
@@ -306,6 +289,7 @@ const BoxEdit = () => {
                 key={index}
                 className="flex flex-col gap-2 p-3 mt-2 border border-gray-700 rounded-lg bg-gray-950"
               >
+                {/* Nom et quantité */}
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -317,7 +301,6 @@ const BoxEdit = () => {
                     className="flex-1 w-3/4 px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg focus:ring-1 focus:ring-yellow-400"
                     required
                   />
-
                   <input
                     type="number"
                     placeholder="Quantité"
@@ -335,6 +318,7 @@ const BoxEdit = () => {
                   />
                 </div>
 
+                {/* Image */}
                 <div className="flex items-center gap-2">
                   <div className="flex items-center justify-center overflow-hidden bg-gray-900 border border-gray-700 rounded-lg w-30 h-30">
                     {item.uploading ? (
@@ -376,7 +360,6 @@ const BoxEdit = () => {
                   onClick={() => handleRemoveItem(index)}
                   className="flex-shrink-0 p-2 text-sm text-white bg-red-900 rounded-lg hover:text-red-400"
                 >
-                  {" "}
                   Supprimer
                 </button>
               </div>

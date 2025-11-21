@@ -1,78 +1,52 @@
 import { useState } from "react";
-import { useApiMutation } from "../hooks/useApiMutation";
+import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/useAuth";
 
 const UserForm = () => {
-  const { setUser } = useAuth();
-
+  const { login, signup, setUser } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signup" | "login">("login");
+
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  const loginMutation = useApiMutation<
-    {
-      message: string;
-      token: string;
-      user: {
-        _id: string;
-        name: string;
-        email: string;
-        role?: string;
-        provider?: string;
-      };
-    },
-    { email: string; password: string }
-  >("/api/auth/login", "POST", {
-    onSuccess: (data) => {
-      setUser(data.user);
-      localStorage.setItem("token", data.token); // OK car le token doit être hors React
-      setFormData({ name: "", email: "", password: "" });
-      navigate(`/auth/success?email=${encodeURIComponent(data.user.email)}`);
-    },
-    onError: (err) => console.error("Erreur connexion :", err),
-  });
-
-  // ✅ Mutation SIGNUP
-  const signupMutation = useApiMutation<
-    { message: string; user: { _id: string; name: string; email: string } },
-    typeof formData
-  >("/api/user", "POST", {
-    onSuccess: () => {
-      setFormData({ name: "", email: "", password: "" });
-    },
-    onError: (err) => console.error("Erreur création utilisateur :", err),
-  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    if (mode === "signup") {
-      await signupMutation.mutate(formData);
-    } else {
-      await loginMutation.mutate({
-        email: formData.email,
-        password: formData.password,
-      });
+    try {
+      if (mode === "signup") {
+        const user = await signup(
+          formData.name,
+          formData.email,
+          formData.password
+        );
+        setUser(user);
+        navigate(`/auth/success?email=${encodeURIComponent(user.email)}`);
+      } else {
+        const user = await login(formData.email, formData.password);
+        setUser(user);
+        navigate(`/auth/success?email=${encodeURIComponent(user.email)}`);
+      }
+
+      setFormData({ name: "", email: "", password: "" });
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || "Erreur inconnue");
+    } finally {
+      setLoading(false);
     }
   };
-
-  // ✅ Extraction dynamique de l’état selon le mode
-  const loading =
-    mode === "signup" ? signupMutation.loading : loginMutation.loading;
-  const error = mode === "signup" ? signupMutation.error : loginMutation.error;
-  const data = mode === "signup" ? signupMutation.data : loginMutation.data;
 
   return (
     <div className="max-w-md p-6 mx-auto text-white shadow-lg bg-gray-950 rounded-2xl">
@@ -135,7 +109,6 @@ const UserForm = () => {
       </form>
 
       {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
-      {data && <p className="mt-3 text-sm text-green-400">{data.message}</p>}
 
       <div className="mt-4 text-center">
         {mode === "signup" ? (

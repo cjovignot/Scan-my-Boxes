@@ -1,149 +1,149 @@
+// api/routes/user.ts
+import { AuthRequest } from "../src/types/express-request";
+
 import { Router } from "express";
-import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
-import path from "path";
-import { connectDB } from "../utils/db";
+import { checkAuth } from "../middlewares/checkAuth";
+import { checkAdmin } from "../middlewares/checkAdmin";
+import { User } from "../models/User";
 import {
   createUser,
   findAllUsers,
   findUserById,
-  findUserByEmail,
   updateUserById,
   deleteUserById,
 } from "../controllers/userController";
-
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+import { safeUser } from "../utils/safeUser";
 
 const router = Router();
 
-// ✅ Connexion MongoDB
-router.use(async (_req, _res, next) => {
-  await connectDB();
-  next();
-});
-
-// ===============================
-// 🔹 GET - Tous les utilisateurs
-// ===============================
-router.get("/", async (_req, res) => {
+// ------------------------
+// GET — Tous les utilisateurs (admin seulement)
+// ------------------------
+router.get("/", checkAuth, checkAdmin, async (_req, res) => {
   try {
     const users = await findAllUsers();
-    res.json(users);
+    res.json(users.map(safeUser));
   } catch (error) {
-    console.error("❌ Erreur récupération utilisateurs :", error);
+    console.error("Erreur récupération utilisateurs :", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
 });
 
-// ===================================
-// 🔹 GET - Récupération d’un utilisateur par email
-// ===================================
-router.get("/by-email/:email", async (req, res) => {
+// ------------------------
+// GET — Un utilisateur par son ID
+// ------------------------
+router.get("/:id", checkAuth, async (req, res) => {
   try {
-    const { email } = req.params;
-    if (!email) {
-      return res.status(400).json({ error: "Email manquant." });
-    }
-
-    const user = await findUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ error: "Utilisateur introuvable." });
-    }
-
-    res.json({ user });
-  } catch (error) {
-    console.error("Erreur récupération user par email:", error);
-    res.status(500).json({ error: "Erreur serveur." });
-  }
-});
-
-// ======================================
-// 🔹 GET - Un utilisateur par ID
-// ======================================
-router.get("/:id", async (req, res) => {
-  try {
-    const user = await findUserById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: "Utilisateur introuvable." });
-    }
-
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
     res.json(user);
-  } catch (error) {
-    console.error("❌ Erreur récupération user :", error);
-    res.status(500).json({ error: "Erreur serveur." });
+  } catch (err) {
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// ========================================
-// 🔹 POST - Création d’un utilisateur local
-// ========================================
-router.post("/", async (req, res) => {
+// ------------------------
+// POST — Création d’un utilisateur (admin)
+// ------------------------
+router.post("/", checkAuth, checkAdmin, async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password)
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password) {
       return res.status(400).json({ error: "Champs requis manquants." });
+    }
 
-    const hashed = await bcrypt.hash(password, 10);
-    const user = await createUser({ name, email, password: hashed });
-    res.status(201).json({ message: "✅ Utilisateur créé", user });
+    const user = await createUser({
+      name,
+      email,
+      password,
+      role: role || "user",
+    });
+
+    res.status(201).json({
+      message: "Utilisateur créé par admin",
+      user: safeUser(user),
+    });
   } catch (error) {
-    console.error("Erreur création user:", error);
+    console.error("Erreur création utilisateur admin:", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
 });
 
-// ===================================
-// 🔹 PATCH - Mise à jour d’un utilisateur par ID
-// ===================================
-router.patch("/:id", async (req, res) => {
+// ------------------------
+// PATCH — Mise à jour d’un utilisateur
+// ------------------------
+router.patch("/:id", checkAuth, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
 
-    // Hachage du mot de passe si nécessaire
+    // Hachage mot de passe si fourni
     if (updates.password && updates.password.trim() !== "") {
-      updates.password = await bcrypt.hash(updates.password, 10);
+      updates.password = updates.password;
     }
 
-    // On n'autorise maintenant que certains champs + printSettings
-    const allowedUpdates: any = {};
-    const fields = [
+    // Whitelist des champs autorisés
+    const allowedFields = [
       "name",
       "email",
-      "role",
       "picture",
       "provider",
       "password",
       "printSettings",
     ];
-    fields.forEach((key) => {
+    const allowedUpdates: any = {};
+    allowedFields.forEach((key) => {
       if (updates[key] !== undefined) allowedUpdates[key] = updates[key];
     });
 
-    const updatedUser = await updateUserById(id, allowedUpdates);
-    if (!updatedUser)
-      return res.status(404).json({ error: "Utilisateur introuvable." });
+    // Modification du rôle autorisée uniquement pour admin
+    if (updates.role && req.user!.role === "admin") {
+      allowedUpdates.role = updates.role;
+    }
 
-    res.json({ message: "✅ Utilisateur mis à jour", user: updatedUser });
+    const userToUpdate = await findUserById(id);
+    if (!userToUpdate) {
+      return res.status(404).json({ error: "Utilisateur introuvable." });
+    }
+
+    // Vérification des droits : admin ou owner
+    if (req.user!.role !== "admin" && req.user!._id !== id) {
+      return res.status(403).json({ error: "Accès refusé." });
+    }
+
+    const updatedUser = await updateUserById(id, allowedUpdates);
+
+    res.json({
+      message: "Utilisateur mis à jour",
+      user: safeUser(updatedUser!),
+    });
   } catch (error) {
-    console.error("Erreur mise à jour user:", error);
+    console.error("Erreur mise à jour utilisateur:", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
 });
 
-// ===================================
-// 🔹 DELETE - Suppression d’un utilisateur par ID
-// ===================================
-router.delete("/:id", async (req, res) => {
+// ------------------------
+// DELETE — Suppression d’un utilisateur
+// ------------------------
+router.delete("/:id", checkAuth, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const deleted = await deleteUserById(id);
-    if (!deleted)
-      return res.status(404).json({ error: "Utilisateur introuvable." });
+    const userToDelete = await findUserById(id);
 
-    res.json({ message: "🗑️ Utilisateur supprimé." });
+    if (!userToDelete) {
+      return res.status(404).json({ error: "Utilisateur introuvable." });
+    }
+
+    // Vérification des droits : admin ou owner
+    if (req.user!.role !== "admin" && req.user!._id !== id) {
+      return res.status(403).json({ error: "Accès refusé." });
+    }
+
+    await deleteUserById(id);
+    res.json({ message: "Utilisateur supprimé" });
   } catch (error) {
-    console.error("Erreur suppression user:", error);
+    console.error("Erreur suppression utilisateur:", error);
     res.status(500).json({ error: "Erreur serveur." });
   }
 });

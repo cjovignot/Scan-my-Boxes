@@ -1,13 +1,15 @@
+// frontend/src/pages/ScanPage.tsx
 import { useState } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { ArrowLeft, ChevronDown, X, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
+import { useAuth } from "../contexts/useAuth";
 
 const ScanPage = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const { user } = useAuth(); // 🔹 Utilisation du contexte Auth
 
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"lecture" | "stockage">("lecture");
@@ -15,7 +17,7 @@ const ScanPage = () => {
   const [scannedBoxes, setScannedBoxes] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
 
-  // 🔹 Appel de useApi uniquement si l'utilisateur est connecté
+  // 🔹 Appel de useApi uniquement si utilisateur connecté
   const {
     data: storages,
     loading: loadingStorages,
@@ -43,9 +45,8 @@ const ScanPage = () => {
     if (!res || res.length === 0) return;
     const qrValue = res[0].rawValue;
 
-    // Si pas d'utilisateur connecté
-    if (!user) {
-      setShowModal(true); // Ouvre le modal de connexion
+    if (!user?._id) {
+      setShowModal(true); // Demande connexion
       return;
     }
 
@@ -58,7 +59,7 @@ const ScanPage = () => {
         return;
       }
 
-      // Redirection vers détails boîte
+      // Vérification propriétaire de la boîte
       fetch(`${import.meta.env.VITE_API_URL}/api/boxes/${boxId}`)
         .then((res) => res.json())
         .then((box) => {
@@ -68,7 +69,7 @@ const ScanPage = () => {
             navigate(`/box/boxdetails/${boxId}`);
           }
         })
-        .catch(() => alert("Erreur lors de la récupération de la boîte."));
+        .catch(() => alert("❌ Erreur lors de la récupération de la boîte."));
     } else {
       // Mode stockage
       setScannedBoxes((prev) =>
@@ -109,7 +110,8 @@ const ScanPage = () => {
         <div className="w-8" />
       </div>
 
-      {showModal && !user && (
+      {/* Modal de connexion si pas connecté */}
+      {showModal && !user?._id && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="flex flex-col items-center p-6 bg-gray-900 border border-gray-700 rounded-xl">
             <h2 className="mb-4 text-lg font-semibold text-yellow-400">
@@ -172,6 +174,7 @@ const ScanPage = () => {
           <p className="mt-3 text-sm text-center text-red-400">{error}</p>
         )}
 
+        {/* Sélection entrepôt et saisie */}
         {mode === "stockage" && (
           <div className="w-full max-w-md mt-4 mb-4">
             {!user?._id ? (
@@ -227,7 +230,7 @@ const ScanPage = () => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal de saisie */}
       {showModal && user?._id && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="flex flex-col w-full max-w-md overflow-hidden border border-gray-700 bg-gray-950 rounded-xl">

@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
 import { EditUserModal } from "./EditUserModal";
+import { useAuth } from "../contexts/useAuth";
 
 interface User {
   _id: string;
@@ -15,12 +16,9 @@ interface User {
 }
 
 const UserInfos = () => {
-  const {
-    data: users,
-    loading,
-    error,
-    refetch,
-  } = useApi<User[]>("/api/user");
+  const { user: currentUser, setUser } = useAuth(); // 🔹 Contexte Auth
+
+  const { data: users, loading, error, refetch } = useApi<User[]>("/api/user");
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -29,19 +27,25 @@ const UserInfos = () => {
   // ============================
   // 🔥 Mutation : suppression user
   // ============================
-  const { mutate: deleteUser } = useApiMutation<
-    { message: string },
-    undefined
-  >("/api/user", "DELETE", {
-    onSuccess: () => {
-      setDeletingId(null);
-      refetch();
-    },
-    onError: () => {
-      alert("❌ Erreur lors de la suppression.");
-      setDeletingId(null);
-    },
-  });
+  const { mutate: deleteUser } = useApiMutation<{ message: string }, undefined>(
+    "/api/user",
+    "DELETE",
+    {
+      onSuccess: () => {
+        setDeletingId(null);
+        refetch();
+        // Si l'utilisateur courant a été supprimé, logout
+        if (currentUser && currentUser._id === selectedUserId) {
+          setUser(null);
+          window.location.href = "/login";
+        }
+      },
+      onError: () => {
+        alert("❌ Erreur lors de la suppression.");
+        setDeletingId(null);
+      },
+    }
+  );
 
   const handleEdit = (id: string) => setSelectedUserId(id);
   const closeModal = () => setSelectedUserId(null);
@@ -104,11 +108,11 @@ const UserInfos = () => {
               className="flex items-center justify-between py-3"
             >
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-yellow-400 text-sm">
+                <p className="text-sm font-medium text-yellow-400">
                   {user.name}
                 </p>
                 <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                <p className="text-xs text-blue-400 mt-1">
+                <p className="mt-1 text-xs text-blue-400">
                   Rôle : <span className="text-gray-300">{user.role}</span>
                 </p>
                 {user.provider && (
@@ -156,7 +160,7 @@ const UserInfos = () => {
         userId={selectedUserId}
         isOpen={!!selectedUserId}
         onClose={closeModal}
-        onSuccess={refetch}
+        onSuccess={refetch} // 🔹 onSuccess peut rester pour rafraîchir la liste
       />
     </div>
   );
