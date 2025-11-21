@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // 🔹 GOOGLE LOGIN
   const loginWithGoogle = async (credential: string) => {
-    const res = await axiosClient.post("auth/google-login", {
+    const res = await axiosClient.post("api/auth/google-login", {
       token: credential,
     });
     setUser(res.data.user);

@@ -160,9 +160,9 @@ router.post("/login", authLimiter, async (req, res) => {
 // ✅ GOOGLE Login
 // ------------------------
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
+const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_CLIENT_URI!;
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
 
 router.post("/google-login", async (req, res) => {
   const token = req.body.token || req.body.credential; // <- support GSI

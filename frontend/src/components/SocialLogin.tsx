@@ -51,7 +51,7 @@ export const SocialLogin = () => {
 
   const handlePwaLogin = () => {
     const API_URL = import.meta.env.VITE_API_URL;
-    window.location.href = `${API_URL}/auth/google-redirect?source=pwa`;
+    window.location.href = `${API_URL}/api/auth/google-redirect?source=pwa`;
   };
 
   return (
