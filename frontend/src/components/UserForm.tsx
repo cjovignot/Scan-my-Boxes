@@ -134,17 +134,18 @@ const UserForm = () => {
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-yellow-400"
           />
           <ul className="mt-1 text-xs">
-            {Object.keys(passwordRules).map((key) => (
-              <li
-                key={key}
-                className={`
+            {mode === "signup" &&
+              Object.keys(passwordRules).map((key) => (
+                <li
+                  key={key}
+                  className={`
                   ${passwordStatus[key] ? "text-green-400" : "text-gray-400"}
                 `}
-              >
-                {passwordStatus[key] && "🗸 "}
-                {passwordRules[key as keyof typeof passwordRules].label}
-              </li>
-            ))}
+                >
+                  {passwordStatus[key] && "🗸 "}
+                  {passwordRules[key as keyof typeof passwordRules].label}
+                </li>
+              ))}
           </ul>
         </div>
 
