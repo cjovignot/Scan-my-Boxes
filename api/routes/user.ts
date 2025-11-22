@@ -1,5 +1,5 @@
 // api/routes/user.ts
-import { AuthRequest } from "../src/types/express-request";
+import { AuthRequest } from "../types/express-request";
 
 import { Router } from "express";
 import { checkAuth } from "../middlewares/checkAuth";

@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { IUser } from "../src/types/user";
-import { AuthRequest } from "../src/types/express-request";
+import { AuthRequest } from "../types/express-request";
 
 export const checkAuth = (
   req: AuthRequest,
