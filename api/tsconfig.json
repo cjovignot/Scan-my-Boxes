@@ -10,10 +10,9 @@
     "skipLibCheck": true,
     "strict": true,
 
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-
-  "include": ["src/**/*.ts", "src/types/**/*.d.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
