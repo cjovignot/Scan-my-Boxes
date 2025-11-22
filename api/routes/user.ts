@@ -1,7 +1,5 @@
 // api/routes/user.ts
-import { AuthRequest } from "../types/express-request";
-
-import { Router } from "express";
+import { Router, Response } from "express";
 import { checkAuth } from "../middlewares/checkAuth";
 import { checkAdmin } from "../middlewares/checkAdmin";
 import { User } from "../models/User";
@@ -13,27 +11,32 @@ import {
   deleteUserById,
 } from "../controllers/userController";
 import { safeUser } from "../utils/safeUser";
+import { AuthRequest } from "../types/express-request"; // 👈 ici
 
 const router = Router();
 
 // ------------------------
 // GET — Tous les utilisateurs (admin seulement)
 // ------------------------
-router.get("/", checkAuth, checkAdmin, async (_req, res) => {
-  // test
-  try {
-    const users = await findAllUsers();
-    res.json(users.map(safeUser));
-  } catch (error) {
-    console.error("Erreur récupération utilisateurs :", error);
-    res.status(500).json({ error: "Erreur serveur." });
+router.get(
+  "/",
+  checkAuth,
+  checkAdmin,
+  async (_req: AuthRequest, res: Response) => {
+    try {
+      const users = await findAllUsers();
+      res.json(users.map(safeUser));
+    } catch (error) {
+      console.error("Erreur récupération utilisateurs :", error);
+      res.status(500).json({ error: "Erreur serveur." });
+    }
   }
-});
+);
 
 // ------------------------
 // GET — Un utilisateur par son ID
 // ------------------------
-router.get("/:id", checkAuth, async (req, res) => {
+router.get("/:id", checkAuth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
@@ -46,42 +49,42 @@ router.get("/:id", checkAuth, async (req, res) => {
 // ------------------------
 // POST — Création d’un utilisateur (admin)
 // ------------------------
-router.post("/", checkAuth, checkAdmin, async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: "Champs requis manquants." });
+router.post(
+  "/",
+  checkAuth,
+  checkAdmin,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { name, email, password, role } = req.body;
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: "Champs requis manquants." });
+      }
+
+      const user = await createUser({
+        name,
+        email,
+        password,
+        role: role || "user",
+      });
+
+      res.status(201).json({
+        message: "Utilisateur créé par admin",
+        user: safeUser(user),
+      });
+    } catch (error) {
+      console.error("Erreur création utilisateur admin:", error);
+      res.status(500).json({ error: "Erreur serveur." });
     }
-
-    const user = await createUser({
-      name,
-      email,
-      password,
-      role: role || "user",
-    });
-
-    res.status(201).json({
-      message: "Utilisateur créé par admin",
-      user: safeUser(user),
-    });
-  } catch (error) {
-    console.error("Erreur création utilisateur admin:", error);
-    res.status(500).json({ error: "Erreur serveur." });
   }
-});
+);
 
 // ------------------------
 // PATCH — Mise à jour d’un utilisateur
 // ------------------------
-router.patch("/:id", checkAuth, async (req: AuthRequest, res) => {
+router.patch("/:id", checkAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-
-    // Hachage mot de passe si fourni
-    if (updates.password && updates.password.trim() !== "") {
-      updates.password = updates.password;
-    }
 
     // Whitelist des champs autorisés
     const allowedFields = [
@@ -98,7 +101,7 @@ router.patch("/:id", checkAuth, async (req: AuthRequest, res) => {
     });
 
     // Modification du rôle autorisée uniquement pour admin
-    if (updates.role && req.user!.role === "admin") {
+    if (updates.role && req.user?.role === "admin") {
       allowedUpdates.role = updates.role;
     }
 
@@ -108,10 +111,9 @@ router.patch("/:id", checkAuth, async (req: AuthRequest, res) => {
     }
 
     // Vérification des droits : admin ou owner
-    if (req.user!.role !== "admin" && req.user!._id !== id) {
+    if (req.user?.role !== "admin" && req.user?._id !== id) {
       return res.status(403).json({ error: "Accès refusé." });
     }
-
     const updatedUser = await updateUserById(id, allowedUpdates);
 
     res.json({
@@ -127,7 +129,7 @@ router.patch("/:id", checkAuth, async (req: AuthRequest, res) => {
 // ------------------------
 // DELETE — Suppression d’un utilisateur
 // ------------------------
-router.delete("/:id", checkAuth, async (req: AuthRequest, res) => {
+router.delete("/:id", checkAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userToDelete = await findUserById(id);
@@ -137,7 +139,7 @@ router.delete("/:id", checkAuth, async (req: AuthRequest, res) => {
     }
 
     // Vérification des droits : admin ou owner
-    if (req.user!.role !== "admin" && req.user!._id !== id) {
+    if (req.user?.role !== "admin" && req.user?._id !== id) {
       return res.status(403).json({ error: "Accès refusé." });
     }
 
