@@ -11,7 +11,7 @@ import {
   deleteUserById,
 } from "../controllers/userController";
 import { safeUser } from "../utils/safeUser";
-import { AuthRequest } from "../types/express-request"; // 👈 ici
+import { AuthRequest } from "../../shared/types/express-request"; // 👈 ici
 
 const router = Router();
 

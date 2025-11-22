@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AuthRequest } from "../types/express-request";
+import { AuthRequest } from "../../shared/types/express-request";
 
 export const checkAuth = (
   req: AuthRequest,
