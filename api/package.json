@@ -1,6 +1,7 @@
 {
   "name": "api",
   "version": "1.0.0",
+  "types": "src/types/express-request.d.ts",
   "main": "index.ts",
   "scripts": {
     "dev": "npm run sync:types --prefix .. && ts-node index.ts"
