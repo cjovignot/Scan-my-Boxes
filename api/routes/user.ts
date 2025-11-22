@@ -20,6 +20,7 @@ const router = Router();
 // GET — Tous les utilisateurs (admin seulement)
 // ------------------------
 router.get("/", checkAuth, checkAdmin, async (_req, res) => {
+  // test
   try {
     const users = await findAllUsers();
     res.json(users.map(safeUser));
