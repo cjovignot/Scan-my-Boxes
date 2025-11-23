@@ -386,7 +386,7 @@ const PrintGroup = () => {
           className="flex gap-2 px-4 py-2 text-black bg-green-400 rounded-lg hover:bg-green-500"
           disabled={generating || labelImages.length === 0}
         >
-          <PrinterCheck /> Télécharger PDF
+          <PrinterCheck /> Imprimer
         </button>
       </div>
 

@@ -27,8 +27,8 @@ const sendTokenCookie = (res: Response, user: any) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    secure: true, // toujours true en prod
+    sameSite: "none", // <- important pour cross-site
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 

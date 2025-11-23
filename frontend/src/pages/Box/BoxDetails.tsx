@@ -171,7 +171,7 @@ const BoxDetails = () => {
         </motion.div>
 
         {/* Étiquette */}
-        <div className="flex scale-80">
+        <div className="flex items-center justify-center scale-80">
           <div
             ref={labelRef}
             style={{
