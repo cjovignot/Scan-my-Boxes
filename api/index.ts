@@ -11,46 +11,53 @@ import boxesRouter from "./routes/boxes";
 import storageRoutes from "./routes/storages";
 import adminRoutes from "./routes/admin";
 
-import { connectDB } from "./utils/db"; // ✅ utilise la fonction centralisée
+import { connectDB } from "./utils/db";
 
 dotenv.config();
 
 const app = express();
 
+// ============================
+// 🌐 CORS — propre + compatible cookies HTTP-only
+// ============================
 
-// ============================
-// 🌐 CORS configuration
-// ============================
 const allowedOrigins = [
   "http://localhost:5173",
   "https://scan-my-boxes.vercel.app",
   "https://preview-scan-my-boxes.vercel.app",
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin");
-  }
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // autoriser requêtes server-to-server ou internes
+      if (!origin) return callback(null, true);
 
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-  if (req.method === "OPTIONS") return res.status(204).end();
-  next();
-});
+      return callback(new Error("Origin non autorisée par CORS"), false);
+    },
+    credentials: true, // ⚠️ nécessaire pour cookies HTTP-only
+  })
+);
 
 // ============================
 // 🧠 Middleware
 // ============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(helmet());
+
+// 🔧 Helmet réglé pour ne PAS casser les cookies cross-site SameSite=None
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
+
 app.use(cookieParser());
 
 // ============================
@@ -79,21 +86,21 @@ app.use(
 );
 
 // ============================
-// 🧩 Connexion MongoDB unique
+// 🧩 Connexion MongoDB
 // ============================
 (async () => {
-  await connectDB(); // ✅ Appel unique et centralisé
+  await connectDB();
 })();
 
 // ============================
-// 🚀 Démarrage du serveur local
+// 🚀 Démarrage local seulement
 // ============================
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
-    console.log(`🚀 API locale disponible sur : http://localhost:${PORT}`);
+    console.log(`🚀 API locale : http://localhost:${PORT}`);
   });
 }
 
-// ✅ Export pour Vercel
+// Export Vercel
 export default app;

@@ -8,47 +8,52 @@ export const SocialLogin = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // ✅ Détecte si l'app tourne en PWA
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone;
-
     setIsPWA(isStandalone);
 
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+    // ✅ Callback Google One Tap / Button
     const handleCredentialResponse = async (response: any) => {
       if (!response?.credential) return;
 
       try {
-        // Appelle le contexte pour login Google
-        await loginWithGoogle(response.credential);
+        await loginWithGoogle(response.credential); // cookies HTTP-only utilisés ici
       } catch (err) {
         console.error("❌ Google login failed:", err);
       }
     };
 
+    // 🔹 Initialise Google Identity Services
     // @ts-ignore
-    window.google?.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-      disable_auto_prompt: true,
-    });
+    if (window.google?.accounts?.id) {
+      // @ts-ignore
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        disable_auto_prompt: true,
+      });
 
-    // @ts-ignore
-    window.google?.accounts.id.renderButton(
-      document.getElementById("googleSignIn")!,
-      {
-        theme: "filled_black",
-        size: "large",
-        shape: "pill",
-        logo_alignment: "left",
-        width: 250,
-      }
-    );
+      // @ts-ignore
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignIn")!,
+        {
+          theme: "filled_black",
+          size: "large",
+          shape: "pill",
+          logo_alignment: "left",
+          width: 250,
+        }
+      );
+    }
   }, [loginWithGoogle]);
 
+  // 🔹 Redirection PWA vers Google OAuth
   const handlePwaLogin = () => {
     const API_URL = import.meta.env.VITE_API_URL;
     window.location.href = `${API_URL}/api/auth/google-redirect?source=pwa`;

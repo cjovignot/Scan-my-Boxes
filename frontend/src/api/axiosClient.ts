@@ -1,27 +1,31 @@
 import axios from "axios";
 
+const base = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
+// ⚠️ IMPORTANT : pas de "/api" ici pour éviter les doublons
+// Tu appelleras ensuite axiosClient.get("/api/auth/me")
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001/api",
+  baseURL: base,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // cookies HTTP only
+  withCredentials: true, // indispensable pour envoyer les cookies HTTP-only
 });
 
-// 🔹 Attache automatiquement le token si présent (optionnel si cookies)
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+// ✅ Aucun token → pas d'Authorization
+axiosClient.interceptors.request.use(
+  (config) => {
+    // on ne touche à rien, on laisse axios gérer
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// ❗ Pas de redirection ici — on laisse AuthProvider gérer 401
+// ❗ Laisse le AuthProvider gérer les 401
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default axiosClient;
