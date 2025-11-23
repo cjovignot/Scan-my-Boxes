@@ -159,8 +159,8 @@ router.post("/google-login", async (req, res) => {
 router.post("/logout", (_req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    secure: true, // toujours true en prod
+    sameSite: "none", // <- important pour cross-site
   });
 
   res.json({ message: "Déconnecté" });
