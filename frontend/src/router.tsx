@@ -24,10 +24,12 @@ import Register from "./pages/Register";
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
 
-  if (loading) return;
-  <p className="flex items-center justify-center min-h-screen text-center text-yellow-400">
-    Chargement...
-  </p>; // ou un loader stylé
+  if (loading)
+    return (
+      <p className="flex items-center justify-center min-h-screen text-center text-yellow-400">
+        Chargement...
+      </p>
+    );
   if (!user) return <Navigate to="/login" replace />;
 
   return children;
