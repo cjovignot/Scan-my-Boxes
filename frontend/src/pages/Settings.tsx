@@ -38,8 +38,7 @@ const Settings = () => {
 
   // Récupération du user pour printSettings
   const { data: fetchedUser } = useApi<{ printSettings?: PrintSettings }>(
-    user?._id ? `/api/user/${user._id}` : "",
-    { skip: !user?._id }
+    user?._id ? `/api/user/${user._id}` : ""
   );
 
   // Mettre à jour settings et ajouter preset utilisateur si nécessaire
