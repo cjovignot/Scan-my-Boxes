@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { useApiMutation } from "../../hooks/useApiMutation";
 import { useAuth } from "../../contexts/AuthContext";
+import { IUser } from "../../../../backend/src/types/entities/user";
 
 type EditUserModalProps = {
   userId: string | null;
@@ -38,7 +39,10 @@ export const EditUserModal = ({
 }: EditUserModalProps) => {
   const { user: currentUser, setUser } = useAuth();
 
-  const [formData, setFormData] = useState({
+  // Typage propre : IUser + password obligatoire
+  const [formData, setFormData] = useState<
+    { password: string } & Pick<IUser, "name" | "email" | "role">
+  >({
     name: "",
     email: "",
     password: "",
@@ -47,8 +51,8 @@ export const EditUserModal = ({
 
   const [toast, setToast] = useState<string | null>(null);
 
-  // 🔹 Fetch user pour pré-remplissage
-  const { data: fetchedUser, refetch } = useApi(
+  // 🔹 Fetch user pour pré-remplissage (TYPÉ ici 👇)
+  const { data: fetchedUser, refetch } = useApi<IUser>(
     userId && isOpen ? `/api/user/${userId}` : null
   );
 
@@ -63,18 +67,17 @@ export const EditUserModal = ({
     }
   }, [fetchedUser]);
 
-  // 🔹 PATCH user
+  // 🔹 PATCH user (TYPAGE clair)
   const { mutate, loading, error } = useApiMutation<
     {
       message: string;
-      updatedUser?: { name: string; email: string; role: string };
+      updatedUser?: Pick<IUser, "name" | "email" | "role">;
     },
-    Partial<typeof formData>
+    Partial<IUser> & { password?: string }
   >("", "PATCH", {
     onSuccess: async (data) => {
       setToast(data.message || "Utilisateur mis à jour !");
 
-      // 🔁 Refetch si modal encore ouvert
       await refetch?.();
 
       // 🔹 Met à jour l'utilisateur courant si c'est lui
