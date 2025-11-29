@@ -7,12 +7,9 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-
-    // ✅ Active la PWA avec précautions pour Google Auth
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
-
       manifest: {
         name: "Scan My Boxes",
         short_name: "ScanBoxes",
@@ -42,12 +39,9 @@ export default defineConfig({
           },
         ],
       },
-
-      // ⚙️ Service Worker : évite de casser le flux OAuth Google
       workbox: {
         navigateFallback: "/index.html",
         runtimeCaching: [
-          // 1️⃣ NE JAMAIS mettre en cache les requêtes OAuth Google
           {
             urlPattern: /^https:\/\/accounts\.google\.com\/.*/i,
             handler: "NetworkOnly",
@@ -56,34 +50,25 @@ export default defineConfig({
             urlPattern: /^https:\/\/www\.googleapis\.com\/.*/i,
             handler: "NetworkOnly",
           },
-          // 2️⃣ NE PAS mettre en cache les appels à ton backend d’auth
           {
             urlPattern:
               /^https:\/\/scan-my-boxes-api\.vercel\.app\/api\/auth\/.*/i,
             handler: "NetworkOnly",
           },
-          // 3️⃣ Cache raisonnable pour le reste de ton API
           {
             urlPattern: /^https:\/\/scan-my-boxes-api\.vercel\.app\/api\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 86400, // 1 jour
-              },
+              expiration: { maxEntries: 50, maxAgeSeconds: 86400 },
             },
           },
-          // 4️⃣ Cache des assets statiques
           {
             urlPattern: /\.(?:js|css|html|png|jpg|jpeg|svg|gif|ico)$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "static-assets",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 jours
-              },
+              expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
             },
           },
         ],
@@ -98,5 +83,8 @@ export default defineConfig({
         secure: false,
       },
     },
+  },
+  build: {
+    outDir: "dist",
   },
 });
