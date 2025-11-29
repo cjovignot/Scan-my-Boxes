@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Plus, Camera, ChevronDown } from "lucide-react";
 import { useApi } from "../hooks/useApi";
 import { useApiMutation } from "../hooks/useApiMutation";
 import { useAuth } from "../contexts/AuthContext";
+import { CreateBoxPayload } from "../../../backend/src/types";
 
 type Storage = {
   _id: string;
@@ -29,7 +30,7 @@ const BoxCreate = () => {
   // ============================
   const { mutate: createBox, loading: creating } = useApiMutation<
     { success: boolean },
-    void
+    CreateBoxPayload
   >("/api/boxes", "POST", {
     onSuccess: () => {
       alert("✅ Boîte créée avec succès !");

@@ -23,3 +23,20 @@ export interface IBox {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export type CreateBoxPayload = {
+  ownerId: string;
+  content: {
+    name: string;
+    quantity: number;
+    picture: string;
+    uploading?: boolean;
+  }[];
+  dimensions: { width: number; height: number; depth: number };
+  destination: string;
+  storageId: string;
+  width: string;
+  height: string;
+  depth: string;
+  fragile: boolean;
+};
