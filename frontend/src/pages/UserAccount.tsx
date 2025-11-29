@@ -8,6 +8,20 @@ import { useApiMutation } from "../hooks/useApiMutation";
 
 import { getInitials } from "../utils/functions";
 
+export interface UserType {
+  _id: string;
+  name: string;
+  email: string;
+  role: "user" | "admin";
+  picture?: string;
+  provider?: string;
+  printSettings?: Record<string, any>;
+}
+
+export interface UpdateUserResponse {
+  updatedUser?: UserType | null;
+}
+
 const UserAccount = () => {
   const { user, setUser, logout } = useAuth()!;
   const navigate = useNavigate();
@@ -24,17 +38,25 @@ const UserAccount = () => {
   // ==============================
   // 🔹 PATCH - Update User
   // ==============================
-  const { mutate: updateUser, loading: updating } = useApiMutation(
-    "", // URL vide
+  const { mutate: updateUser, loading: updating } = useApiMutation<
+    UpdateUserResponse, // type de la réponse
+    Partial<{ name: string; email: string; printSettings?: any }> // données envoyées
+  >(
+    "", // URL précisé dynamiquement dans handleSave
     "PATCH",
     {
       onSuccess: (res) => {
-        setUser(res.updatedUser ?? res.user ?? res);
-        alert("✅ Profil mis à jour !");
-        navigate("/profile");
+        if (res.updatedUser) {
+          setUser(res.updatedUser); // maintenant TS sait que res.updatedUser existe
+          alert("✅ Profil mis à jour !");
+          navigate("/profile");
+        } else {
+          alert("⚠️ Aucun utilisateur mis à jour.");
+        }
       },
-      onError: () => {
-        alert("Erreur lors de la mise à jour.");
+      onError: (err) => {
+        console.error(err);
+        alert("❌ Erreur lors de la mise à jour du profil.");
       },
     }
   );
