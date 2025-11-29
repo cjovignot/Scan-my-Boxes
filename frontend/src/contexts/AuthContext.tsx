@@ -8,14 +8,22 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
   logout: () => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<IUser>;
+  login: (email: string, password: string) => Promise<IUser>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   refreshUser: async () => {},
-  setUser: async () => {},
+  setUser: () => {},
   logout: async () => {},
+  signup: async () => {
+    throw new Error("signup not implemented");
+  },
+  login: async () => {
+    throw new Error("login not implemented");
+  },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -23,8 +31,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const refreshUser = async () => {
-    const res = await axiosClient.get("/api/auth/me");
-    setUser(res.data.user);
+    try {
+      const res = await axiosClient.get("/api/auth/me");
+      setUser(res.data.user);
+    } catch {
+      setUser(null);
+    }
+  };
+
+  const signup = async (name: string, email: string, password: string) => {
+    const res = await axiosClient.post("/api/auth/signup", {
+      name,
+      email,
+      password,
+    });
+    setUser(res.data);
+    return res.data;
+  };
+
+  const login = async (email: string, password: string) => {
+    const res = await axiosClient.post("/api/auth/login", { email, password });
+    setUser(res.data);
+    return res.data;
+  };
+
+  const logout = async () => {
+    await axiosClient.post("/api/auth/logout");
+    setUser(null);
   };
 
   useEffect(() => {
@@ -34,6 +67,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const res = await axiosClient.get("/api/auth/me");
         if (active) setUser(res.data.user);
+      } catch {
+        if (active) setUser(null);
       } finally {
         if (active) setLoading(false);
       }
@@ -46,14 +81,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const logout = async () => {
-    await axiosClient.post("/api/auth/logout");
-    setUser(null);
-  };
-
   return (
     <AuthContext.Provider
-      value={{ user, loading, refreshUser, setUser, logout }}
+      value={{ user, loading, refreshUser, setUser, logout, signup, login }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import axios from "axios";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { User } from "../models/user";
 import { GoogleTokenResponse } from "../types/index";
 
@@ -45,12 +46,7 @@ router.get("/google/callback", async (req, res) => {
 
   try {
     const { code } = req.query;
-    if (!code) {
-      console.log("[CALLBACK] ❌ No code");
-      return res.status(400).json({ error: "Code is required" });
-    }
-
-    console.log("[CALLBACK] ✔ Code:", code);
+    if (!code) return res.status(400).json({ error: "Code is required" });
 
     const tokenRequestBody = new URLSearchParams({
       code: code as string,
@@ -60,41 +56,28 @@ router.get("/google/callback", async (req, res) => {
       grant_type: "authorization_code",
     });
 
-    console.log("[CALLBACK] Requesting Google tokens…");
-
     const { data } = await axios.post<GoogleTokenResponse>(
       "https://oauth2.googleapis.com/token",
       tokenRequestBody,
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    console.log("[CALLBACK] ✔ Token response:", data);
-
     const { access_token } = data;
-
-    console.log("[CALLBACK] Fetching Google user info…");
 
     const { data: userInfo } = await axios.get(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       { headers: { Authorization: `Bearer ${access_token}` } }
     );
 
-    console.log("[CALLBACK] ✔ Google user:", userInfo);
-
     let user = await User.findOne({ email: userInfo.email });
 
-    if (user) {
-      console.log("[CALLBACK] User exists:", user.email);
-    } else {
-      console.log("[CALLBACK] Creating new user");
+    if (!user) {
       user = await User.create({
         name: userInfo.name,
         email: userInfo.email,
         role: "user",
       });
     }
-
-    console.log("[CALLBACK] Creating JWT…");
 
     const token = jwt.sign(
       {
@@ -108,18 +91,12 @@ router.get("/google/callback", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    console.log("[CALLBACK] JWT created:", token);
-
-    console.log("[CALLBACK] Setting cookie…");
-
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // IMPORTANT EN LOCAL
-      sameSite: "lax", // PERMET LE COOKIE EN HTTP
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    console.log("[CALLBACK] Cookie set ✔");
 
     res.redirect(`${process.env.FRONTEND_URL}/auth/success`);
   } catch (err) {
@@ -129,34 +106,108 @@ router.get("/google/callback", async (req, res) => {
 });
 
 // ------------------------------------------------------
-// 3️⃣ Logout
+// 3️⃣ Signup (email/password)
+// ------------------------------------------------------
+router.post("/signup", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password)
+      return res.status(400).json({ message: "Tous les champs sont requis" });
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "Utilisateur déjà existant" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: "user",
+    });
+
+    const token = jwt.sign(
+      { _id: user._id, email: user.email, name: user.name, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// ------------------------------------------------------
+// 4️⃣ Login (email/password)
+// ------------------------------------------------------
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(400).json({ message: "Utilisateur non trouvé" });
+
+    if (!user.password)
+      return res
+        .status(400)
+        .json({
+          message: "Utilisateur créé via Google, utilisez Google Login",
+        });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Mot de passe incorrect" });
+
+    const token = jwt.sign(
+      { _id: user._id, email: user.email, name: user.name, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// ------------------------------------------------------
+// 5️⃣ Logout
 // ------------------------------------------------------
 router.post("/logout", (req, res) => {
-  console.log("[LOGOUT] Clearing cookie");
   res.clearCookie("token");
   res.json({ message: "Logged out" });
 });
 
 // ------------------------------------------------------
-// 4️⃣ /me
+// 6️⃣ /me
 // ------------------------------------------------------
 router.get("/me", (req, res) => {
-  console.log("\n===== /auth/me =====");
-
   const token = req.cookies.token;
-  console.log("[ME] token:", token);
-
-  if (!token) {
-    console.log("[ME] No token → null");
-    return res.json({ user: null });
-  }
+  if (!token) return res.json({ user: null });
 
   try {
     const user = jwt.verify(token, process.env.JWT_SECRET!);
-    console.log("[ME] ✔ Token valid:", user);
     res.json({ user });
   } catch {
-    console.log("[ME] ❌ Invalid token");
     res.json({ user: null });
   }
 });

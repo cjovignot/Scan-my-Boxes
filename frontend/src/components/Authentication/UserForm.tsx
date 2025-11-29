@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 
 const UserForm = () => {
-  const { user, loading } = useAuth();
+  const { signup, login, loading } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -42,7 +42,7 @@ const UserForm = () => {
   const [passwordStatus, setPasswordStatus] = useState(
     Object.keys(passwordRules).reduce(
       (acc, key) => ({ ...acc, [key]: false }),
-      {}
+      {} as Record<string, boolean>
     )
   );
 
@@ -68,24 +68,15 @@ const UserForm = () => {
 
     try {
       if (mode === "signup") {
-        const user = await signup(
-          formData.name,
-          formData.email,
-          formData.password
-        );
-        setUser(user);
-        navigate(`/auth/success?email=${encodeURIComponent(user.email)}`);
+        await signup(formData.name, formData.email, formData.password);
       } else {
-        const user = await login(formData.email, formData.password);
-        setUser(user);
-        navigate(`/auth/success?email=${encodeURIComponent(user.email)}`);
+        await login(formData.email, formData.password);
       }
 
+      navigate(`/auth/success?email=${encodeURIComponent(formData.email)}`);
       setFormData({ name: "", email: "", password: "" });
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Erreur inconnue");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -132,20 +123,21 @@ const UserForm = () => {
             required
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-yellow-400"
           />
-          <ul className="mt-1 text-xs">
-            {mode === "signup" &&
-              Object.keys(passwordRules).map((key) => (
+          {mode === "signup" && (
+            <ul className="mt-1 text-xs">
+              {Object.keys(passwordRules).map((key) => (
                 <li
                   key={key}
-                  className={`flex items-center gap-1
-                  ${passwordStatus[key] ? "text-green-400" : "text-gray-400"}
-                `}
+                  className={`flex items-center gap-1 ${
+                    passwordStatus[key] ? "text-green-400" : "text-gray-400"
+                  }`}
                 >
                   {passwordStatus[key] && <Check size={12} />}
                   {passwordRules[key as keyof typeof passwordRules].label}
                 </li>
               ))}
-          </ul>
+            </ul>
+          )}
         </div>
 
         <button
