@@ -164,7 +164,13 @@ const ScanPage = () => {
 
           <Scanner
             onScan={handleScan}
-            onError={(err) => setError(err.message)}
+            onError={(err: unknown) => {
+              const message =
+                err instanceof Error
+                  ? err.message
+                  : "Erreur inconnue du scanner";
+              setError(message);
+            }}
             styles={{
               container: { width: "100%", height: "100%" },
               video: { width: "100%", height: "100%", objectFit: "cover" },
