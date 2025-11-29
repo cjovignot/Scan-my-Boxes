@@ -36,10 +36,8 @@ const PrintGroup = () => {
 
   const { user } = useAuth()!;
   const { data: userData } = useApi<{ printSettings?: any }>(
-    user?._id ? `/api/user/${user._id}` : null,
-    { skip: !user?._id }
+    user?._id ? `/api/user/${user._id}` : null
   );
-
   const { data, loading, error } = useApi<Box[]>(
     selectedBoxes.length > 0
       ? `/api/boxes?ids=${selectedBoxes.join(",")}`
