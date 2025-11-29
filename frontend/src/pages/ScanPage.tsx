@@ -35,9 +35,11 @@ const ScanPage = () => {
       setScannedBoxes([]);
       setShowModal(false);
     },
-    onError: (err) => {
-      console.error(err);
-      alert("❌ Erreur lors de l’enregistrement.");
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Erreur inconnue.";
+
+      console.error(message);
+      alert("❌ " + message);
     },
   });
 
