@@ -6,10 +6,11 @@
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "types": ["react", "react-dom"],
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "ESNext", // ← IMPORTANT
+    "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,

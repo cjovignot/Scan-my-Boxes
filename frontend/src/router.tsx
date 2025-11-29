@@ -1,6 +1,7 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import React from "react";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 // import Home from "./pages/Home";
 import AuthSuccess from "./pages/AuthSuccess";
 import AuthError from "./pages/AuthError";
@@ -21,7 +22,7 @@ import UserAccount from "./pages/UserAccount";
 import Register from "./pages/Register";
 
 // ✅ Composant pour protéger les routes
-function PrivateRoute({ children }: { children: JSX.Element }) {
+function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading)
@@ -32,7 +33,7 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
     );
   if (!user) return <Navigate to="/login" replace />;
 
-  return children;
+  return <>{children}</>; // wrapper fragment pour ReactNode
 }
 
 // ✅ Routes
