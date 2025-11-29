@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import Boxes from "./pages/Boxes";
 import Settings from "./pages/Settings";
 import { PrintProvider } from "./contexts/PrintProvider";
+// Commit
 
 function App() {
   return (
