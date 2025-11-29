@@ -1,0 +1,25 @@
+export interface IContentItem {
+  name: string;
+  quantity: number;
+  picture?: string;
+}
+
+export interface IBoxDimensions {
+  width: number;
+  height: number;
+  depth: number;
+}
+
+export interface IBox {
+  _id?: string; // optionnel si nouvel objet
+  ownerId: string; // ObjectId en string
+  storageId?: string | null; // ObjectId en string
+  number: string;
+  fragile?: boolean;
+  content?: IContentItem[];
+  destination?: string;
+  qrcodeURL?: string;
+  dimensions: IBoxDimensions;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

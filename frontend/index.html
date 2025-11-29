@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <!-- 🧭 Métadonnées de base -->
+    <title>Keeply</title>
+    <meta
+      name="description"
+      content="Gère tes boîtes facilement avec Scan My Boxes 📦"
+    />
+    <meta name="theme-color" content="#030712" />
+
+    <!-- ✅ Icônes et manifest PWA -->
+    <link rel="icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-512x512.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- ✅ iOS support -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Keeply" />
+
+    <!-- ✅ Couleur d’arrière-plan au chargement -->
+    <meta name="background-color" content="#030712" />
+
+    <!-- ✅ Script Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+
+  <body class="text-white bg-gray-950">
+    <div id="root"></div>
+
+    <!-- 🧩 Entrée React/Vite -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
