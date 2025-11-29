@@ -60,7 +60,7 @@ const BoxDetails = () => {
     loading,
     error,
     refetch,
-  } = useApi<Box>(`/api/boxes/${id}`, { skip: !id });
+  } = useApi<Box>(id ? `/api/boxes/${id}` : null);
 
   const { selectedBoxes, toggleBox } = usePrint();
 
@@ -102,7 +102,7 @@ const BoxDetails = () => {
     const generateLabel = async () => {
       try {
         setGenerating(true);
-        const dataUrl = await htmlToImage.toPng(labelRef.current, {
+        const dataUrl = await htmlToImage.toPng(labelRef.current!, {
           quality: 1,
           backgroundColor: "#fff",
           pixelRatio: 2,
