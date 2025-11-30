@@ -13,7 +13,7 @@ const BACKEND_REDIRECT_URI = `${process.env.BACKEND_URL}/api/auth/google/callbac
 // 1️⃣ Google OAuth URL
 // ------------------------------------------------------
 router.get("/google/url", (req, res) => {
-  console.log("[GOOGLE URL] Creating OAuth URL");
+  // console.log("[GOOGLE URL] Creating OAuth URL");
 
   const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 
@@ -32,7 +32,7 @@ router.get("/google/url", (req, res) => {
   const qs = new URLSearchParams(options);
   const url = `${rootUrl}?${qs.toString()}`;
 
-  console.log("[GOOGLE URL] ->", url);
+  // console.log("[GOOGLE URL] ->", url);
 
   res.json({ url });
 });
@@ -41,8 +41,8 @@ router.get("/google/url", (req, res) => {
 // 2️⃣ Google Callback
 // ------------------------------------------------------
 router.get("/google/callback", async (req, res) => {
-  console.log("\n===== GOOGLE CALLBACK =====");
-  console.log("[CALLBACK] Query:", req.query);
+  // console.log("\n===== GOOGLE CALLBACK =====");
+  // console.log("[CALLBACK] Query:", req.query);
 
   try {
     const { code } = req.query;
@@ -159,11 +159,9 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Utilisateur non trouvé" });
 
     if (!user.password)
-      return res
-        .status(400)
-        .json({
-          message: "Utilisateur créé via Google, utilisez Google Login",
-        });
+      return res.status(400).json({
+        message: "Utilisateur créé via Google, utilisez Google Login",
+      });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
