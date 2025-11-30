@@ -6,19 +6,10 @@
       "use": "@vercel/static-build",
       "config": { "distDir": "dist" }
     },
-    {
-      "src": "api/backend.ts",
-      "use": "@vercel/node"
-    }
+    { "src": "api/backend.ts", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/backend.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
-    }
+    { "src": "/api/(.*)", "dest": "/api/backend.ts" },
+    { "src": "/(.*)", "dest": "/frontend/dist/$1" }
   ]
 }
