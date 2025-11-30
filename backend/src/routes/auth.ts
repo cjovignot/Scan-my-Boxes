@@ -1,226 +1,196 @@
-import { Router } from "express";
-import axios from "axios";
-import jwt from "jsonwebtoken";
+import { Router, Response, Request } from "express";
 import bcrypt from "bcryptjs";
-import { User, UserDocument } from "../models/user";
-import { GoogleTokenResponse } from "../types/index";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
+import { checkAuth } from "../middlewares/checkAuth";
+import { findUserByEmail, createUser } from "../controllers/userController";
+import { safeUser } from "../utils/safeUser";
+import { OAuth2Client } from "google-auth-library";
+import axios from "axios";
+import { User } from "../models/user";
 
 const router = Router();
 
-const BACKEND_REDIRECT_URI = `${process.env.BACKEND_URL}/api/auth/google/callback`;
-
-interface GoogleUserInfo {
-  id: string;
-  email: string;
-  verified_email: boolean;
-  name: string;
-  given_name: string;
-  family_name: string;
-  picture: string;
-  locale: string;
+// Patch du type Request pour req.user
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: any;
+  }
 }
 
-// ------------------------------------------------------
-// 1️⃣ Google OAuth URL
-// ------------------------------------------------------
-router.get("/google/url", (req, res) => {
-  // console.log("[GOOGLE URL] Creating OAuth URL");
+// 🔹 Cookie generator
+const sendTokenCookie = (res: Response, user: any) => {
+  const token = jwt.sign(
+    {
+      _id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+    process.env.JWT_SECRET!,
+    { expiresIn: "7d" }
+  );
 
-  const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
-  const options = {
-    redirect_uri: BACKEND_REDIRECT_URI,
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    access_type: "offline",
-    response_type: "code",
-    prompt: "consent",
-    scope: [
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email",
-    ].join(" "),
-  };
+  return token;
+};
 
-  const qs = new URLSearchParams(options);
-  const url = `${rootUrl}?${qs.toString()}`;
-
-  // console.log("[GOOGLE URL] ->", url);
-
-  res.json({ url });
+// SIGNUP
+const signupSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(8)
+    .regex(/[A-Z]/)
+    .regex(/[a-z]/)
+    .regex(/[0-9]/)
+    .regex(/[^A-Za-z0-9]/),
 });
 
-// ------------------------------------------------------
-// 2️⃣ Google Callback
-// ------------------------------------------------------
-router.get("/google/callback", async (req, res) => {
-  // console.log("\n===== GOOGLE CALLBACK =====");
-  // console.log("[CALLBACK] Query:", req.query);
-
-  try {
-    const { code } = req.query;
-    if (!code) return res.status(400).json({ error: "Code is required" });
-
-    const tokenRequestBody = new URLSearchParams({
-      code: code as string,
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirect_uri: BACKEND_REDIRECT_URI,
-      grant_type: "authorization_code",
-    });
-
-    const { data } = await axios.post<GoogleTokenResponse>(
-      "https://oauth2.googleapis.com/token",
-      tokenRequestBody,
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
-
-    const { access_token } = data;
-
-    const { data: userInfo } = await axios.get<GoogleUserInfo>(
-      "https://www.googleapis.com/oauth2/v2/userinfo",
-      { headers: { Authorization: `Bearer ${access_token}` } }
-    );
-
-    let user = (await User.findOne({
-      email: userInfo.email,
-    })) as UserDocument | null;
-
-    if (!user) {
-      user = await User.create({
-        name: userInfo.name,
-        email: userInfo.email,
-        role: "user",
-      });
-    }
-
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        name: user.name,
-        provider: user.provider,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.redirect(`${process.env.FRONTEND_URL}/auth/success`);
-  } catch (err) {
-    console.error("[CALLBACK] ❌ Error:", err);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
-  }
-});
-
-// ------------------------------------------------------
-// 3️⃣ Signup (email/password)
-// ------------------------------------------------------
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password)
-      return res.status(400).json({ message: "Tous les champs sont requis" });
+    const { name, email, password } = signupSchema.parse(req.body);
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "Utilisateur déjà existant" });
+    const existing = await findUserByEmail(email);
+    if (existing)
+      return res.status(400).json({ message: "Email déjà utilisé" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
+    const user = await createUser({
       name,
       email,
-      password: hashedPassword,
+      password,
+      provider: "local",
       role: "user",
     });
 
-    const token = jwt.sign(
-      { _id: user._id, email: user.email, name: user.name, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur serveur" });
+    sendTokenCookie(res, user);
+    res.status(201).json({ message: "Utilisateur créé", user: safeUser(user) });
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
   }
 });
 
-// ------------------------------------------------------
-// 4️⃣ Login (email/password)
-// ------------------------------------------------------
+// LOGIN classique
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = loginSchema.parse(req.body);
+    const user = await findUserByEmail(email);
 
-    const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Utilisateur non trouvé" });
+    if (!user || user.provider === "google") {
+      return res.status(401).json({ message: "Identifiants invalides" });
+    }
 
-    if (!user.password)
-      return res.status(400).json({
-        message: "Utilisateur créé via Google, utilisez Google Login",
-      });
+    const isValid = await bcrypt.compare(password, user.password!);
+    if (!isValid)
+      return res.status(401).json({ message: "Identifiants invalides" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Mot de passe incorrect" });
+    sendTokenCookie(res, user);
+    res.json({ message: "Connexion réussie", user: safeUser(user) });
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
-    const token = jwt.sign(
-      { _id: user._id, email: user.email, name: user.name, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+// GOOGLE LOGIN (popup PWA / navigateur classique)
+const googleClient = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID!);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+router.post("/google-login", async (req, res) => {
+  try {
+    const { token, isPWA } = req.body; // 🔹 on reçoit isPWA
+    if (!token)
+      return res.status(400).json({ error: "Token Google manquant." });
+
+    let id_token = token;
+
+    if (isPWA) {
+      // 🔹 PWA popup → token est le code → on échange code contre id_token
+      const tokenRes = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        new URLSearchParams({
+          code: token,
+          client_id: process.env.VITE_GOOGLE_CLIENT_ID!,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+          redirect_uri: "postmessage",
+          grant_type: "authorization_code",
+        }),
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      );
+
+      id_token = tokenRes.data.id_token;
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: id_token,
+      audience: process.env.VITE_GOOGLE_CLIENT_ID,
     });
 
-    res.json(user);
+    const payload = ticket.getPayload();
+    if (!payload)
+      return res.status(400).json({ error: "Token Google invalide." });
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        email,
+        name,
+        googleId,
+        avatar: picture,
+        provider: "google",
+      });
+    }
+
+    // 🔹 Cookie si navigateur classique
+    if (!isPWA) sendTokenCookie(res, user);
+
+    // 🔹 Token à renvoyer si PWA
+    const pwaToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "7d",
+    });
+
+    return res.json({
+      user: safeUser(user),
+      token: isPWA ? pwaToken : undefined,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur serveur" });
+    console.error("❌ Google login error:", err);
+    res.status(500).json({ error: "Erreur lors du login Google." });
   }
 });
 
-// ------------------------------------------------------
-// 5️⃣ Logout
-// ------------------------------------------------------
-router.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.json({ message: "Logged out" });
+// LOGOUT
+router.post("/logout", (_req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
+  res.json({ message: "Déconnecté" });
 });
 
-// ------------------------------------------------------
-// 6️⃣ /me
-// ------------------------------------------------------
-router.get("/me", (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.json({ user: null });
+// ME
+router.get("/me", checkAuth, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated" });
 
-  try {
-    const user = jwt.verify(token, process.env.JWT_SECRET!);
-    res.json({ user });
-  } catch {
-    res.json({ user: null });
+  let userFull;
+  if (req.user._id) {
+    userFull = await User.findById(req.user._id);
   }
+
+  return res.json({ user: userFull ? safeUser(userFull) : req.user });
 });
 
 export default router;
