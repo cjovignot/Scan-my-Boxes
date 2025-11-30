@@ -1,6 +1,7 @@
-import { Schema, model, type Document } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-export interface UserDocument extends Document {
+// 🔹 Typage "lean" pour les documents utilisateur
+export interface User {
   name: string;
   email: string;
   password?: string;
@@ -10,6 +11,9 @@ export interface UserDocument extends Document {
   printSettings?: Record<string, any>;
 }
 
+// 🔹 Typage du document Mongoose
+export interface UserDocument extends User, Document {}
+
 const userSchema = new Schema<UserDocument>(
   {
     name: { type: String, required: true },
@@ -18,11 +22,7 @@ const userSchema = new Schema<UserDocument>(
     role: { type: String, enum: ["user", "admin"], default: "user" },
     picture: { type: String, required: false },
     provider: { type: String, required: false },
-
-    printSettings: {
-      type: Object,
-      default: {},
-    },
+    printSettings: { type: Object, default: {} },
   },
   { timestamps: true }
 );
