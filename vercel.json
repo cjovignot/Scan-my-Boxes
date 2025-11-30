@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "frontend/package.json",
@@ -7,12 +6,12 @@
       "config": { "distDir": "dist" }
     },
     {
-      "src": "backend/src/**/*.ts",
+      "src": "api/**/*.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/backend/src/$1.ts" },
-    { "src": "/(.*)", "dest": "/frontend/dist/$1" }
+    { "src": "/api/(.*)", "dest": "/api/$1.ts" },
+    { "src": "/(.*)", "dest": "/frontend/dist/index.html" }
   ]
 }
