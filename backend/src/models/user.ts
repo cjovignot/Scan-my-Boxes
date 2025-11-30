@@ -1,6 +1,5 @@
 import { Schema, model, Document } from "mongoose";
 
-// Typage simple du User
 export interface User {
   name: string;
   email: string;
@@ -11,7 +10,6 @@ export interface User {
   printSettings?: Record<string, any>;
 }
 
-// Le document Mongoose
 export interface UserDocument extends User, Document {}
 
 const userSchema = new Schema(
@@ -20,12 +18,12 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String },
     role: { type: String, enum: ["user", "admin"], default: "user" },
-    picture: { type: String, required: false },
-    provider: { type: String, required: false },
+    picture: { type: String },
+    provider: { type: String },
     printSettings: { type: Object, default: {} },
   },
   { timestamps: true }
 );
 
-// 👉 IMPORTANT : ne pas mettre <UserDocument> ici !
-export const User = model<UserDocument>("User", userSchema);
+// ⚠️ IMPORTANT : AUCUN GÉNÉRIQUE ICI
+export const User = model("User", userSchema);
