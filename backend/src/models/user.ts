@@ -1,6 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 
-// 🔹 Typage "lean" pour les documents utilisateur
+// Typage simple du User
 export interface User {
   name: string;
   email: string;
@@ -11,10 +11,10 @@ export interface User {
   printSettings?: Record<string, any>;
 }
 
-// 🔹 Typage du document Mongoose
+// Le document Mongoose
 export interface UserDocument extends User, Document {}
 
-const userSchema = new Schema<UserDocument>(
+const userSchema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -27,4 +27,5 @@ const userSchema = new Schema<UserDocument>(
   { timestamps: true }
 );
 
+// 👉 IMPORTANT : ne pas mettre <UserDocument> ici !
 export const User = model<UserDocument>("User", userSchema);
