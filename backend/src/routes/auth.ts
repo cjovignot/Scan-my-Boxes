@@ -9,6 +9,17 @@ const router = Router();
 
 const BACKEND_REDIRECT_URI = `${process.env.BACKEND_URL}/api/auth/google/callback`;
 
+interface GoogleUserInfo {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  locale: string;
+}
+
 // ------------------------------------------------------
 // 1️⃣ Google OAuth URL
 // ------------------------------------------------------
@@ -64,7 +75,7 @@ router.get("/google/callback", async (req, res) => {
 
     const { access_token } = data;
 
-    const { data: userInfo } = await axios.get(
+    const { data: userInfo } = await axios.get<GoogleUserInfo>(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       { headers: { Authorization: `Bearer ${access_token}` } }
     );
